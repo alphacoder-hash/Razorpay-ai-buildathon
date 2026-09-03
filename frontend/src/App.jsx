@@ -3,8 +3,16 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
 import PaymentsTable from './components/PaymentsTable'
 import AuditLogs from './components/AuditLogs'
+import Exceptions from './components/Exceptions'
+import Detector from './components/Detector'
 
-const PAGE_LABELS = { dashboard: 'Overview', payments: 'Payments', audit: 'Audit Logs' }
+const PAGE_LABELS = {
+  dashboard:  'Overview',
+  payments:   'Payments',
+  exceptions: 'Exception List',
+  detector:   'Live Detector',
+  audit:      'Audit Logs',
+}
 
 export default function App() {
   const [page, setPage] = useState('dashboard')
@@ -28,9 +36,11 @@ export default function App() {
         </header>
 
         <main style={{ flex: 1, overflowY: 'auto', minWidth: 0, width: '100%' }}>
-          {page === 'dashboard' && <Dashboard />}
-          {page === 'payments'  && <PaymentsTable />}
-          {page === 'audit'     && <AuditLogs />}
+          {page === 'dashboard'  && <Dashboard />}
+          {page === 'payments'   && <PaymentsTable />}
+          {page === 'exceptions' && <Exceptions />}
+          {page === 'detector'   && <Detector />}
+          {page === 'audit'      && <AuditLogs />}
         </main>
       </div>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>

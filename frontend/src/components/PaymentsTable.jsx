@@ -12,15 +12,16 @@ const STATUS = {
 }
 
 const CAUSE_COLOR = {
-  BANK_DECLINE:       '#F05454',
-  NETWORK_TIMEOUT:    '#2563EB',
-  INSUFFICIENT_FUNDS: '#F4A100',
-  CARD_EXPIRED:       '#8B5CF6',
-  FRAUD_FLAG:         '#DC2626',
-  UNKNOWN:            '#9CA3AF',
+  BANK_DECLINE:        '#F05454',
+  NETWORK_TIMEOUT:     '#2563EB',
+  INSUFFICIENT_FUNDS:  '#F4A100',
+  CARD_EXPIRED:        '#8B5CF6',
+  FRAUD_FLAG:          '#DC2626',
+  CHECKOUT_ABANDONED:  '#0891B2',
+  SUBSCRIPTION_FAILED: '#BE185D',
+  OVERDUE_INVOICE:     '#0D9488',
+  UNKNOWN:             '#9CA3AF',
 }
-
-const FILTERS = ['ALL', 'FAILED', 'RECOVERED', 'ESCALATED', 'PENDING']
 
 export default function PaymentsTable() {
   const [payments, setPayments] = useState([])
@@ -29,6 +30,11 @@ export default function PaymentsTable() {
   const [loading, setLoading] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState(null)
   const [recovering, setRecovering] = useState(null)
+  const [expandedReason, setExpandedReason] = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncNotice, setSyncNotice] = useState(null)
+
+  const FILTERS = ['ALL', 'FAILED', 'RECOVERED', 'ESCALATED', 'PENDING']
 
   const fetchPayments = async () => {
     setLoading(true)
@@ -46,6 +52,19 @@ export default function PaymentsTable() {
     setRecovering(null)
   }
 
+  const handleSyncLinks = async () => {
+    setSyncing(true)
+    try {
+      const res = await syncPaymentLinks()
+      setSyncNotice(`Checked ${res.data.links_checked} links: ${res.data.newly_recovered} newly recovered (₹${res.data.money_recovered})`)
+      await fetchPayments()
+      setTimeout(() => setSyncNotice(null), 5000)
+    } catch (e) {
+      console.error(e)
+    }
+    setSyncing(false)
+  }
+
   const filtered = payments.filter(p =>
     p.customer_email.toLowerCase().includes(search.toLowerCase()) ||
     p.id.includes(search)
@@ -54,10 +73,33 @@ export default function PaymentsTable() {
   return (
     <div style={{ padding: '28px 32px' }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A1A2E', margin: 0 }}>Payments</h1>
-        <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>All payments processed by the recovery agent</p>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#1A1A2E', margin: 0 }}>Payments</h1>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>All payments processed by the recovery agent</p>
+        </div>
+        <button
+          onClick={handleSyncLinks}
+          disabled={syncing}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '7px 14px', borderRadius: 7, border: '1px solid #E2E8F0',
+            background: '#fff', color: '#2563EB', fontSize: 12, fontWeight: 600,
+            cursor: syncing ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans', sans-serif",
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+          }}
+        >
+          <span style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>🔄</span>
+          {syncing ? 'Syncing...' : 'Sync Paid Links'}
+        </button>
       </div>
+
+      {syncNotice && (
+        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '8px 14px', borderRadius: 6, fontSize: 12, marginBottom: 16 }}>
+          ✓ {syncNotice}
+        </div>
+      )}
+
 
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -110,10 +152,41 @@ export default function PaymentsTable() {
                 <td style={{ padding: '12px 16px', fontWeight: 600, color: '#1A1A2E' }}>₹{p.amount.toLocaleString('en-IN')}</td>
                 <td style={{ padding: '12px 16px' }}>
                   {p.root_cause ? (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: CAUSE_COLOR[p.root_cause] || '#9CA3AF' }}>
-                      {p.root_cause.replace(/_/g, ' ')}
-                    </span>
+                    <div>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: CAUSE_COLOR[p.root_cause] || '#9CA3AF' }}>
+                        {p.root_cause.replace(/_/g, ' ')}
+                      </span>
+                      {p.gemini_reasoning && (
+                        <div style={{ marginTop: 4 }}>
+                          <button
+                            onClick={() => setExpandedReason(expandedReason === p.id ? null : p.id)}
+                            style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                          >
+                            {expandedReason === p.id ? 'hide' : 'AI reasoning'}
+                          </button>
+                          {expandedReason === p.id && (
+                            <div style={{ marginTop: 6, fontSize: 11, color: '#334155', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', maxWidth: 290, lineHeight: 1.5 }}>
+                              <div style={{ marginBottom: p.recovery_message ? 6 : 0 }}>
+                                <strong style={{ color: '#6366F1' }}>Diagnosis: </strong>{p.gemini_reasoning}
+                              </div>
+                              {p.recovery_message && (
+                                <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 6, marginTop: 6 }}>
+                                  <strong style={{ color: '#059669' }}>Customer Copy (Hinglish/EN): </strong>
+                                  <span style={{ fontStyle: 'italic', color: '#475569' }}>"{p.recovery_message}"</span>
+                                </div>
+                              )}
+                              {p.payment_link_id && (
+                                <div style={{ marginTop: 4, fontSize: 10, fontFamily: 'monospace', color: '#64748B' }}>
+                                  Link ID: {p.payment_link_id}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ) : <span style={{ color: '#D1D5DB' }}>—</span>}
+
                 </td>
                 <td style={{ padding: '12px 16px', fontSize: 11, color: '#6B7280' }}>
                   {p.recovery_action ? p.recovery_action.replace(/_/g, ' ') : '—'}

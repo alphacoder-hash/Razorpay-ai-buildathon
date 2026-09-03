@@ -1,9 +1,11 @@
-import { LayoutDashboard, CreditCard, ScrollText } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ScrollText, AlertTriangle, Radar } from 'lucide-react'
 
 const NAV = [
-  { label: 'Overview',   icon: <LayoutDashboard size={15} />, id: 'dashboard' },
-  { label: 'Payments',   icon: <CreditCard size={15} />,      id: 'payments'  },
-  { label: 'Audit Logs', icon: <ScrollText size={15} />,      id: 'audit'     },
+  { label: 'Overview',    icon: <LayoutDashboard size={15} />, id: 'dashboard'  },
+  { label: 'Payments',    icon: <CreditCard size={15} />,      id: 'payments'   },
+  { label: 'Exceptions',  icon: <AlertTriangle size={15} />,   id: 'exceptions' },
+  { label: 'Live Detect', icon: <Radar size={15} />,           id: 'detector'   },
+  { label: 'Audit Logs',  icon: <ScrollText size={15} />,      id: 'audit'      },
 ]
 
 export default function Sidebar({ active, onChange }) {

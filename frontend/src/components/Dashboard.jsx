@@ -64,6 +64,7 @@ export default function Dashboard() {
     Recovered: r.recovered,
     Escalated: r.escalated,
     Failed:    r.failed,
+    Skipped:   r.skipped || 0,
   }))
 
   return (
@@ -235,7 +236,7 @@ export default function Dashboard() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-                {['Run ID', 'Total', 'Recovered', 'Escalated', 'Failed', '₹ Recovered', 'Recovery Rate', 'Completed'].map(h => (
+                {['Run ID', 'Total', 'Recovered', 'Escalated', 'Failed', 'Skipped', '₹ Recovered', 'Recovery Rate', 'Status', 'Completed'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 10, fontWeight: 600, color: C.textSub, textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -257,6 +258,7 @@ export default function Dashboard() {
                   <td style={{ padding: '10px 12px' }}><Chip c={C.emerald} bg={C.emeraldLight}>{r.recovered}</Chip></td>
                   <td style={{ padding: '10px 12px' }}><Chip c={C.amber}   bg={C.amberLight}>{r.escalated}</Chip></td>
                   <td style={{ padding: '10px 12px' }}><Chip c={C.crimson} bg={C.crimsonLight}>{r.failed}</Chip></td>
+                  <td style={{ padding: '10px 12px' }}><Chip c={C.slate} bg={C.slateLight}>{r.skipped || 0}</Chip></td>
                   <td style={{ padding: '10px 12px', fontWeight: 700, color: C.emerald, fontFamily: "'DM Mono', monospace", fontSize: 12 }}>
                     ₹{r.money_recovered.toLocaleString('en-IN')}
                   </td>
@@ -267,6 +269,12 @@ export default function Dashboard() {
                       </div>
                       <span style={{ fontWeight: 700, color: C.blue, fontSize: 11, minWidth: 34, fontFamily: "'DM Mono', monospace" }}>{r.recovery_rate}%</span>
                     </div>
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>
+                    {r.stopped_early
+                      ? <span style={{ fontSize: 10, fontWeight: 700, color: C.crimson, background: C.crimsonLight, padding: '2px 7px', borderRadius: 4, letterSpacing: '0.04em' }}>⚠ STOPPED EARLY</span>
+                      : <span style={{ fontSize: 10, fontWeight: 600, color: C.emerald, background: C.emeraldLight, padding: '2px 7px', borderRadius: 4 }}>✓ COMPLETE</span>
+                    }
                   </td>
                   <td style={{ padding: '10px 12px', color: C.textSub, fontSize: 11 }}>
                     {r.completed_at ? new Date(r.completed_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '—'}

@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.database import init_db
-from routes import payments, agent, audit
+from routes import payments, agent, audit, webhooks
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +41,8 @@ def startup():
 app.include_router(payments.router)
 app.include_router(agent.router)
 app.include_router(audit.router)
+app.include_router(webhooks.router)
+
 
 
 @app.get("/health")
