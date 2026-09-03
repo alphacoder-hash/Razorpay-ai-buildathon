@@ -5,9 +5,15 @@ from config import GEMINI_API_KEY, RECOVERY_ACTIONS
 _client = genai.Client(api_key=GEMINI_API_KEY)
 
 VALID_CAUSES = list(RECOVERY_ACTIONS.keys())
+_CACHE = {}
 
 
 def classify(error_code: str, error_description: str, amount: float = 0.0) -> dict:
+    cache_key = f"{error_code}::{error_description}"
+    if cache_key in _CACHE:
+        cached = dict(_CACHE[cache_key])
+        return cached
+
     prompt = f"""You are a payment failure analyst and recovery copywriter for an Indian fintech platform.
 
 Classify this payment failure into exactly ONE root cause from this list:
@@ -30,8 +36,9 @@ Rules:
 3. If unsure of root cause, use UNKNOWN.
 """
     try:
-        response = _client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+        response = _client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
         text = response.text.strip()
+
         # Strip all markdown code fence variants Gemini may return
         if text.startswith("```"):
             text = text.split("\n", 1)[-1]
@@ -43,7 +50,9 @@ Rules:
             result["root_cause"] = "UNKNOWN"
         if "customer_message" not in result or not result["customer_message"]:
             result["customer_message"] = "Your payment was interrupted. Please complete your transaction using this direct link."
+        _CACHE[cache_key] = result
         return result
+
     except Exception as e:
         return {
             "root_cause": "UNKNOWN",

@@ -28,6 +28,7 @@ export default function Dashboard() {
   const [runs, setRuns]       = useState([])
   const [loading, setLoading] = useState(false)
   const [running, setRunning] = useState(false)
+  const [batchSize, setBatchSize] = useState(15)
 
   const fetchRuns = async () => {
     setLoading(true)
@@ -39,7 +40,7 @@ export default function Dashboard() {
 
   const handleRun = async () => {
     setRunning(true)
-    try { await runBatch(60); await fetchRuns() } catch (e) { console.error(e) }
+    try { await runBatch(batchSize); await fetchRuns() } catch (e) { console.error(e) }
     setRunning(false)
   }
 
@@ -70,13 +71,37 @@ export default function Dashboard() {
   return (
     <div style={{ padding: '28px 32px', fontFamily: "'DM Sans', sans-serif", minHeight: '100%' }}>
 
-      {/* ── Page header ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28 }}>
+      {/* ── Running Progress Overlay ─────────────────────────── */}
+      {running && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff', padding: '32px 40px', borderRadius: 16,
+            textAlign: 'center', maxWidth: 420, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+              Autonomous Agent Active
+            </h3>
+            <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 20px', lineHeight: 1.5 }}>
+              Diagnosing {batchSize} payments with Gemini 3.6 Flash & dispatching Razorpay recovery links...
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#2563EB', fontSize: 13, fontWeight: 600 }}>
+              <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+              Processing batch, please hold...
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0, letterSpacing: '-0.4px' }}>
-              Recovery Overview
-            </h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, margin: 0 }}>Revenue Recovery Agent</h1>
             {latest && (
               <span style={{ fontSize: 11, fontWeight: 600, background: C.emeraldLight, color: C.emerald, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.03em' }}>
                 LAST RUN: {latest.run_id.slice(-8).toUpperCase()}
@@ -87,7 +112,16 @@ export default function Dashboard() {
             Detect · Classify · Recover · Audit — autonomous agent loop
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select
+            value={batchSize}
+            onChange={e => setBatchSize(Number(e.target.value))}
+            style={{ padding: '7px 12px', borderRadius: 8, border: '1px solid #E2E8F0', fontSize: 12, fontWeight: 600, color: '#4B5563', background: '#fff', cursor: 'pointer' }}
+          >
+            <option value={15}>⚡ 15 Payments (Fast Demo)</option>
+            <option value={30}>⚡ 30 Payments</option>
+            <option value={60}>⚡ 60 Payments (Full Batch)</option>
+          </select>
           <button onClick={fetchRuns} style={btnSecondary}>
             <RefreshCw size={13} /> Refresh
           </button>
