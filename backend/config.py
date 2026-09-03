@@ -1,0 +1,28 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./payback.db")
+
+# Agent stopping rules
+MAX_RETRIES_PER_PAYMENT = 3
+CONSECUTIVE_FAILURE_STOP = 2
+RETRY_DELAY_SECONDS = {"NETWORK_TIMEOUT": 0, "BANK_DECLINE": 7200, "INSUFFICIENT_FUNDS": 86400}
+
+# Recovery action map
+RECOVERY_ACTIONS = {
+    "NETWORK_TIMEOUT": "IMMEDIATE_RETRY",
+    "BANK_DECLINE": "DELAYED_RETRY",
+    "INSUFFICIENT_FUNDS": "SEND_PAYMENT_LINK",
+    "CARD_EXPIRED": "REQUEST_NEW_METHOD",
+    "FRAUD_FLAG": "ESCALATE_HUMAN",
+    "UNKNOWN": "SEND_PAYMENT_LINK",
+}
+
+# Fraud — never auto-retry
+NO_AUTO_RETRY = {"FRAUD_FLAG"}
