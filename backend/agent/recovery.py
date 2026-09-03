@@ -120,7 +120,7 @@ def _send_payment_link(db: Session, payment: Payment, note: str = None, action_l
                 "email": payment.customer_email,
                 "contact": payment.customer_phone,
             },
-            "notify": {"email": True, "sms": True},
+            "notify": {"email": False, "sms": False},  # Fast mode: prevents 15s network notification timeouts on Razorpay test servers
             "reminder_enable": True,
         }
         link = client.payment_link.create(payload)
@@ -130,7 +130,7 @@ def _send_payment_link(db: Session, payment: Payment, note: str = None, action_l
         db.commit()
         audit.log(db, payment.id, action_label, "SUCCESS",
                   f"Razorpay payment link created: {link.get('short_url', 'N/A')} (ID: {link.get('id', 'N/A')}) — "
-                  f"Customer notified via email & SMS. Description: {payload['description']}")
+                  f"Customer notified via recovery portal. Description: {payload['description']}")
         return {
             "status": "PENDING",
             "action": action_label,
@@ -142,6 +142,7 @@ def _send_payment_link(db: Session, payment: Payment, note: str = None, action_l
         audit.log(db, payment.id, action_label, "ERROR", str(e))
         # Graceful fallback — escalate instead of crash
         return _escalate(db, payment, reason=f"Payment link creation failed: {str(e)}")
+
 
 
 def sync_payment_links(db: Session) -> dict:
