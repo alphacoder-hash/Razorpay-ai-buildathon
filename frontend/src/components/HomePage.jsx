@@ -156,7 +156,7 @@ export default function HomePage({ onGoToDashboard }) {
         padding: '72px 32px 64px',
         textAlign: 'center',
       }}>
-        <div style={{ maxWidth: 880, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -250,57 +250,76 @@ export default function HomePage({ onGoToDashboard }) {
           {/* 4 Professional KPI Cards */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16,
+            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gap: 20,
             textAlign: 'left',
           }}>
             <div style={{
               background: '#F8FAFC',
               border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              padding: '18px 20px',
+              borderRadius: 10,
+              padding: '24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 140,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                Transactions Monitored
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Transactions Monitored
+                </div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                  {stats.totalPayments.toLocaleString()}
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A' }}>
-                {stats.totalPayments.toLocaleString()}
-              </div>
-              <div style={{ fontSize: 11, color: '#059669', marginTop: 4, fontWeight: 600 }}>
-                ● Real-time database sync
+              <div style={{ fontSize: 12, color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, marginTop: 12 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
+                Real-time database sync
               </div>
             </div>
 
             <div style={{
               background: '#F8FAFC',
               border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              padding: '18px 20px',
+              borderRadius: 10,
+              padding: '24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 140,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                Revenue Recovered
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Revenue Recovered
+                </div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: '#059669', letterSpacing: '-0.5px', whiteSpace: 'nowrap' }}>
+                  ₹{stats.recoveredAmount ? stats.recoveredAmount.toLocaleString('en-IN') : '2,48,500'}
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#059669' }}>
-                ₹{stats.recoveredAmount ? stats.recoveredAmount.toLocaleString('en-IN') : '2,48,500'}
-              </div>
-              <div style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>
-                Direct captures & links
+              <div style={{ fontSize: 12, color: '#64748B', marginTop: 12 }}>
+                Direct captures & payment links
               </div>
             </div>
 
             <div style={{
               background: '#F8FAFC',
               border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              padding: '18px 20px',
+              borderRadius: 10,
+              padding: '24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 140,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                AI Diagnosis Latency
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  AI Diagnosis Latency
+                </div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#0284C7', letterSpacing: '-0.5px' }}>
+                  &lt; 500 ms
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#0284C7' }}>
-                &lt; 500 ms
-              </div>
-              <div style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: '#64748B', marginTop: 12 }}>
                 Ultra-low latency inference
               </div>
             </div>
@@ -308,16 +327,23 @@ export default function HomePage({ onGoToDashboard }) {
             <div style={{
               background: '#F8FAFC',
               border: '1px solid #E2E8F0',
-              borderRadius: 8,
-              padding: '18px 20px',
+              borderRadius: 10,
+              padding: '24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 140,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                Policy Guardrails
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Policy Guardrails
+                </div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                  100% Bounded
+                </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A' }}>
-                100% Bounded
-              </div>
-              <div style={{ fontSize: 11, color: '#059669', marginTop: 4, fontWeight: 600 }}>
+              <div style={{ fontSize: 12, color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, marginTop: 12 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
                 Stopping rules & fraud gates
               </div>
             </div>
