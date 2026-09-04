@@ -133,7 +133,7 @@ export default function HomePage({ onGoToDashboard }) {
   useEffect(() => {
     // Ping backend health
     const start = performance.now()
-    fetch('https://razorpay-ai-buildathon-production.up.railway.app/health', { method: 'GET' })
+    fetch('https://razorpay-ai-buildathon-production-788d.up.railway.app/health', { method: 'GET' })
       .then(res => res.json())
       .then(data => {
         const ms = Math.round(performance.now() - start)
@@ -1478,7 +1478,7 @@ export default function HomePage({ onGoToDashboard }) {
             </a>
             <span style={{ color: '#CBD5E1' }}>•</span>
             <a
-              href="https://razorpay-ai-buildathon-production.up.railway.app/health"
+              href="https://razorpay-ai-buildathon-production-788d.up.railway.app/health"
               style={{ fontSize: 12, color: '#0284C7', textDecoration: 'none', fontWeight: 600 }}
             >
               Railway API Health

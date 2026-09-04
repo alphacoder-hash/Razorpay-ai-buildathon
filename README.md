@@ -5,7 +5,7 @@
 **Built by Vaibhav Pandey**
 
 [![Frontend Live](https://img.shields.io/badge/Frontend%20Live-Vercel-black?logo=vercel&style=for-the-badge)](https://razorpay-ai-buildathon-ten.vercel.app/)
-[![Backend Live](https://img.shields.io/badge/Backend%20Live-Railway-purple?logo=railway&style=for-the-badge)](https://razorpay-ai-buildathon-production.up.railway.app/health)
+[![Backend Live](https://img.shields.io/badge/Backend%20Live-Railway-purple?logo=railway&style=for-the-badge)](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
 <br/>
 
@@ -24,8 +24,8 @@
 
 > 🌐 **Live Demo & Cloud Deployments**
 > - **Frontend (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
-> - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app)
-> - **Backend Health Check**: [`https://razorpay-ai-buildathon-production.up.railway.app/health`](https://razorpay-ai-buildathon-production.up.railway.app/health)
+> - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app)
+> - **Backend Health Check**: [`https://razorpay-ai-buildathon-production-788d.up.railway.app/health`](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
 [Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#30-system-architecture--data-flow) · [Decision Matrix](#40-agent-policy--decision-matrix) · [API Reference](#70-api-specification) · [Quick Start](#90-quick-start-guide)
 
@@ -280,8 +280,8 @@ tests/test_webhooks.py::test_webhook_payment_link_paid_reconciles_status PASSED 
 
 ### 0. Live Cloud Deployments (Instant Access)
 - **Frontend Dashboard (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
-- **Backend API (Railway)**: [https://razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app)
-- **Health Check Endpoint**: [https://razorpay-ai-buildathon-production.up.railway.app/health](https://razorpay-ai-buildathon-production.up.railway.app/health)
+- **Backend API (Railway)**: [https://razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app)
+- **Health Check Endpoint**: [https://razorpay-ai-buildathon-production-788d.up.railway.app/health](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
 ### 1. Clone & Configure Environment Locally
 ```bash
@@ -412,7 +412,7 @@ PayBack AI includes a **professional, enterprise-grade dashboard** built with Re
 | Service | Platform | URL |
 |---|---|---|
 | **Frontend** | Vercel (auto-deploy from GitHub) | [razorpay-ai-buildathon-ten.vercel.app](https://razorpay-ai-buildathon-ten.vercel.app/) |
-| **Backend** | Railway (auto-deploy from GitHub) | [razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app/) |
+| **Backend** | Railway (auto-deploy from GitHub) | [razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app/) |
 | **Database** | SQLite (local) / PostgreSQL (Railway) | Auto-configured via `DATABASE_URL` |
 
 ### Environment Variables
