@@ -9,7 +9,7 @@ from models.database import Payment, PaymentStatus
 from agent import audit
 
 logger = logging.getLogger(__name__)
-client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID or "", RAZORPAY_KEY_SECRET or ""))
 
 
 def execute(db: Session, payment: Payment) -> dict:

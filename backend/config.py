@@ -3,19 +3,23 @@ import os
 
 load_dotenv()
 
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
-GROK_API_KEY = os.getenv("GROK_API_KEY")
+import logging
+
+logger = logging.getLogger(__name__)
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
+GROK_API_KEY = os.getenv("GROK_API_KEY", "")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./payback.db")
 
-# Fail fast — catch missing keys at startup, not at first request
+# Warn if keys are missing rather than crash the container
 _missing = [k for k, v in {
     "RAZORPAY_KEY_ID": RAZORPAY_KEY_ID,
     "RAZORPAY_KEY_SECRET": RAZORPAY_KEY_SECRET,
     "GROK_API_KEY": GROK_API_KEY,
 }.items() if not v]
 if _missing:
-    raise EnvironmentError(f"Missing required environment variables: {', '.join(_missing)}")
+    logger.warning(f"⚠️ Missing environment variables: {', '.join(_missing)}. Please set them in Railway's Variables tab.")
 
 # Agent stopping rules
 MAX_RETRIES_PER_PAYMENT = 3

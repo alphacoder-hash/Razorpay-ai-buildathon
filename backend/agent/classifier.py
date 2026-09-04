@@ -11,7 +11,7 @@ else:
     _MODELS = ["grok-3-mini", "grok-3", "grok-2"]
 
 _client = OpenAI(
-    api_key=GROK_API_KEY,
+    api_key=GROK_API_KEY or "missing_key",
     base_url=_base_url,
 )
 
