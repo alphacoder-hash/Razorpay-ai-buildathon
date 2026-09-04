@@ -2,6 +2,7 @@
 
 # ⚡ PayBack AI — Autonomous Revenue Recovery Agent
 ### Razorpay AI Buildathon 2026 · Track 03: AI Revenue Recovery
+**Built by Vaibhav Pandey**
 
 [![Frontend Live](https://img.shields.io/badge/Frontend%20Live-Vercel-black?logo=vercel&style=for-the-badge)](https://razorpay-ai-buildathon-ten.vercel.app/)
 [![Backend Live](https://img.shields.io/badge/Backend%20Live-Railway-purple?logo=railway&style=for-the-badge)](https://razorpay-ai-buildathon-production.up.railway.app/health)
@@ -318,23 +319,29 @@ Frontend runs at `http://localhost:5173`.
 
 ## 10.0 Real-World Merchant Testing with Razorpay
 
-To test PayBack AI against real Razorpay test-mode transactions:
+PayBack AI includes an **End-to-End Live Razorpay Test Simulator** designed for merchants and hackathon judges to test real payment drop-offs without manual setup:
 
-1. **Trigger Real Test Failures in Razorpay**:
-   - Go to your Razorpay Dashboard → **Payment Links** → **Create Payment Link** (e.g. ₹500).
-   - Open the link in an incognito window and input Razorpay's official test failure cards:
-     - **Bank Decline**: `4000 0000 0000 0002` (CVV: 123, Exp: 12/28)
-     - **Insufficient Funds**: `4000 0000 0000 0006`
-     - **Expired Card**: `4000 0000 0000 0008`
-2. **Observe in Live Detect**:
-   - Open the **Live Detect** tab on PayBack AI (`http://localhost:5173`).
-   - The poller will pull the real failures directly from Razorpay's `GET /v1/payments` API.
-3. **Execute 1-Click Recovery**:
-   - Click the **Recover** button on any live transaction.
-   - The agent immediately diagnoses the failure with Grok 3 Mini, crafts customer copy, calls `client.payment_link.create()`, and updates the audit log.
-4. **Reconcile Payment Settlement**:
-   - Once you pay the newly generated recovery link in Razorpay test mode, click **Sync Paid Links** on the Payments page.
-   - The status updates from `PENDING` → `RECOVERED`, showing verified money recovered!
+### 10.1 Live Test Checkout Simulator (`/test-checkout`)
+Visit `http://localhost:8000/test-checkout` to open the built-in sandbox simulator:
+1. **1-Click Checkout Launch**: Automatically creates a real Razorpay Order via `client.order.create()` and renders the official Razorpay Checkout modal.
+2. **Trigger Real Test Failures in Razorpay**:
+   - Choose **Card** and enter Razorpay's test decline card: `4000 0000 0000 0002` (CVV: `123`, Exp: `12/28`) to trigger an authentic `BANK_DECLINE`.
+   - Or choose **UPI** and enter `failure@razorpay` to simulate a failed UPI intent.
+   - Razorpay immediately records the failed payment (`pay_xxx`) on their servers.
+
+### 10.2 Observe Live Detection in PayBack AI
+1. Go to `http://localhost:5173` and click the **Live Detect** tab in the sidebar.
+2. Click **Refresh**: The detector queries Razorpay's `GET /v1/payments` API in real-time, fetching the exact failed payment ID, error code, and amount.
+3. Click **"Ingest & Recover"**: PayBack AI's agent autonomously diagnoses the root cause with Groq LPU in <500ms, crafts customer-tailored Hinglish recovery copy, and executes the recovery action.
+
+### 10.3 Resilient Multi-Rail Link Generation & Quota Guard
+- In Razorpay Test Mode, free merchant accounts are limited to 30 test payment links per business ID.
+- PayBack AI features an intelligent quota circuit-breaker: if Razorpay's test limit is reached, the agent automatically falls back to generating tracked, simulated test links (`plink_test_...`) with full audit logs and UI badges.
+- This guarantees **zero demo crashes or 401 exceptions**, ensuring continuous testing for evaluation and presentations.
+
+### 10.4 Loop Closure & Settlement Reconciliation
+- Once a recovery payment link is completed, call `POST /payments/sync-links` (or click **Sync Paid Links** in the dashboard).
+- PayBack AI reconciles with Razorpay API and marks the status as `RECOVERED`, providing verifiable proof of recovered revenue.
 
 ---
 

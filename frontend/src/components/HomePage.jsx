@@ -441,6 +441,31 @@ export default function HomePage({ onGoToDashboard }) {
               <Activity size={15} color="#0284C7" />
               Live Razorpay Stream
             </button>
+
+            <a
+              href="http://localhost:8000/test-checkout"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#F0FDF4',
+                color: '#15803D',
+                border: '1px solid #BBF7D0',
+                padding: '13px 22px',
+                borderRadius: 7,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#DCFCE7'}
+              onMouseLeave={e => e.currentTarget.style.background = '#F0FDF4'}
+            >
+              <Zap size={15} color="#16A34A" />
+              ⚡ Simulate Live Payment
+            </a>
           </div>
 
           {/* 4 Professional KPI Cards */}
@@ -1433,9 +1458,18 @@ export default function HomePage({ onGoToDashboard }) {
           gap: 16,
         }}>
           <div style={{ fontSize: 12, color: '#64748B' }}>
-            <strong style={{ color: '#0F172A' }}>PayBack AI</strong> · Submitted to <strong>Razorpay AI Buildathon 2026</strong> · Track 03: AI Revenue Recovery
+            <strong style={{ color: '#0F172A' }}>PayBack AI</strong> · Built by <strong style={{ color: '#0284C7' }}>Vaibhav Pandey</strong> for <strong>Razorpay AI Buildathon 2026</strong> · Track 03: AI Revenue Recovery
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <a
+              href="http://localhost:8000/test-checkout"
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 12, color: '#16A34A', textDecoration: 'none', fontWeight: 600 }}
+            >
+              ⚡ Test Sandbox Checkout
+            </a>
+            <span style={{ color: '#CBD5E1' }}>•</span>
             <a
               href="https://razorpay-ai-buildathon-ten.vercel.app/"
               style={{ fontSize: 12, color: '#0284C7', textDecoration: 'none', fontWeight: 600 }}

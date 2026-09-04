@@ -207,10 +207,28 @@ export default function Detector() {
           )}
 
           {data.failed_payments.length === 0 && data.at_risk_payments.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 60, background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0' }}>
+            <div style={{ textAlign: 'center', padding: 48, background: '#fff', borderRadius: 12, border: '1px solid #E2E8F0' }}>
               <ShieldCheck size={40} color="#059669" style={{ margin: '0 auto 12px' }} />
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#0F172A' }}>No failed payments detected</div>
-              <div style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>Your Razorpay test account has no failures in the last {data.hours_back}h</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#0F172A' }}>Connected & Polling Razorpay Live Test API</div>
+              <div style={{ fontSize: 13, color: '#6B7280', marginTop: 4, maxWidth: 500, margin: '6px auto 16px' }}>
+                Your Razorpay account is connected, but no failed payments have occurred yet in the last {data.hours_back}h.
+              </div>
+              <a
+                href="http://localhost:8000/test-checkout"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '10px 18px', background: '#0284C7', color: '#fff',
+                  borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13,
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                }}
+              >
+                ⚡ Launch Razorpay Test Checkout (Simulate Failure) &rarr;
+              </a>
+              <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 10 }}>
+                Trigger a decline with test card <code>4000 0000 0000 0002</code>, then click Refresh above!
+              </div>
             </div>
           )}
         </>
