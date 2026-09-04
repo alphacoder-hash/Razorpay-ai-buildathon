@@ -12,6 +12,7 @@ export const getExceptions   = ()          => api.get('/payments/exceptions')
 export const getDetectorData = (hoursBack = 24) => api.get(`/payments/detect?hours_back=${hoursBack}`)
 export const syncPaymentLinks = ()          => api.post('/payments/sync-links')
 export const ingestLivePayment = (data)     => api.post('/payments/ingest-live', data)
+export const getPaymentDetails = (id)       => api.get(`/payments/${id}`)
 
 export default api
 

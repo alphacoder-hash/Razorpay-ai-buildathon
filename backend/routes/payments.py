@@ -134,3 +134,29 @@ def recover_payment(payment_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Recovery failed: {str(e)}")
 
 
+@router.get("/{payment_id}")
+def get_payment_details(payment_id: str, db: Session = Depends(get_db)):
+    """Retrieves full details for a single payment including AI reasoning and customer recovery copy."""
+    payment = db.query(Payment).filter(Payment.id == payment_id).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    return {
+        "id": payment.id,
+        "order_id": payment.order_id,
+        "customer_email": payment.customer_email,
+        "customer_phone": payment.customer_phone,
+        "amount": payment.amount,
+        "currency": payment.currency,
+        "status": payment.status,
+        "root_cause": payment.root_cause,
+        "gemini_reasoning": payment.gemini_reasoning,
+        "recovery_message": payment.recovery_message,
+        "payment_link_id": payment.payment_link_id,
+        "retry_count": payment.retry_count,
+        "recovery_action": payment.recovery_action,
+        "error_code": payment.error_code,
+        "error_description": payment.error_description,
+        "created_at": payment.created_at.isoformat() if payment.created_at else None,
+    }
+
+

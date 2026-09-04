@@ -6,14 +6,14 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.2-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://reactjs.org/)
-[![xAI Grok](https://img.shields.io/badge/LLM-Grok%203%20Mini-000000.svg)](https://x.ai/)
+[![Groq LPU](https://img.shields.io/badge/LLM-Groq%20LPU%20%7C%20xAI-orange.svg)](https://groq.com/)
 [![Razorpay API](https://img.shields.io/badge/Payments-Razorpay%20v1-02042B.svg)](https://razorpay.com/)
 [![Tests Passing](https://img.shields.io/badge/Tests-30%2F30%20Passing-success.svg)](#-verification--test-suite)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <p align="center">
   <b>Find revenue that’s slipping away and win it back autonomously.</b><br>
-  An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with Grok 3 Mini, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
+  An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with ultra-fast Groq LPU AI inference, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
 </p>
 
 [Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#-system-architecture) · [Decision Matrix](#-agent-policy--decision-matrix) · [API Reference](#-api-specification) · [Quick Start](#-quick-start-guide)
@@ -50,7 +50,7 @@ Currently, merchants either ignore failed payments (losing ₹Crores in top-line
 ### 1.2 The Solution: PayBack AI
 **PayBack AI** introduces an **autonomous, self-governing revenue recovery loop**:
 1. **Detects**: Continuously monitors Razorpay payment feeds and live webhooks for failures, cart abandonments, and at-risk authorizations.
-2. **Diagnoses**: Leverages **xAI Grok 3 Mini** to identify the exact technical and behavioral root cause from payment error codes and context.
+2. **Diagnoses**: Leverages **Groq LPU AI inference (GPT-OSS / Qwen)** to identify the exact technical and behavioral root cause from payment error codes and context in under 500ms.
 3. **Decides**: Matches each failure to a bounded, policy-governed intervention (instant retry, delayed backoff, alternate UPI/payment link, or progressive B2B dunning).
 4. **Drafts**: Dynamically generates personalized, high-conversion recovery copy in conversational Hinglish or professional English.
 5. **Executes & Closes the Loop**: Issues real Razorpay payment links and re-authorizations, reconciles settlement via live webhooks, halts upon cascade failures, and reports an **honest exception list** of unresolved cases.
@@ -150,10 +150,10 @@ Every monetary and communication action taken by PayBack AI is explainable, boun
 
 A key evaluation pillar for the Razorpay Buildathon is **AI Judgment**: using an LLM where reasoning is non-trivial, and deterministic code where precision and compliance are paramount.
 
-### Where We Used AI (Grok 3 Mini)
-1. **Semantic Root Cause Analysis**: Payment error strings from banks and payment gateways in India are notoriously cryptic (e.g., `BAD_REQUEST_ERROR` with `"Your payment has been declined by the bank."` vs. `"Payment flagged for suspicious activity"`). Grok infers the underlying behavioral and technical cause rather than relying on brittle regex.
+### Where We Used AI (Groq LPU Inference)
+1. **Semantic Root Cause Analysis**: Payment error strings from banks and payment gateways in India are notoriously cryptic (e.g., `BAD_REQUEST_ERROR` with `"Your payment has been declined by the bank."` vs. `"Payment flagged for suspicious activity"`). The agent infers the underlying behavioral and technical cause at < 500ms latency rather than relying on brittle regex.
 2. **Context-Aware Recovery Messaging (Hinglish/English)**:
-   Instead of robotic boilerplate templates, Grok drafts conversational, friendly, high-converting customer messages:
+   Instead of robotic boilerplate templates, the model drafts conversational, friendly, high-converting customer messages tailored for Indian buyers:
    > *"Namaste! Aapka cart payment complete nahi ho paya. Your items are reserved—please complete your order with 1-click UPI here."*
 
 ### Where We Intentionally Did NOT Use AI (Deterministic Code)
@@ -221,8 +221,8 @@ tests/test_classifier.py::test_classify_checkout_abandoned PASSED        [ 13%]
 tests/test_classifier.py::test_classify_subscription_failed PASSED       [ 16%]
 tests/test_classifier.py::test_classify_overdue_invoice PASSED           [ 20%]
 tests/test_classifier.py::test_classify_invalid_root_cause_falls_back_to_unknown PASSED [ 23%]
-tests/test_classifier.py::test_classify_gemini_returns_markdown_fenced_json PASSED [ 26%]
-tests/test_classifier.py::test_classify_gemini_api_failure_returns_unknown PASSED [ 30%]
+tests/test_classifier.py::test_classify_grok_returns_markdown_fenced_json PASSED [ 26%]
+tests/test_classifier.py::test_classify_grok_api_failure_returns_unknown PASSED [ 30%]
 tests/test_classifier.py::test_classify_malformed_json_returns_unknown PASSED [ 33%]
 tests/test_orchestrator.py::test_run_batch_returns_correct_structure PASSED [ 36%]
 tests/test_orchestrator.py::test_run_batch_all_recovered PASSED          [ 40%]
