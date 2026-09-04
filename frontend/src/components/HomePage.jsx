@@ -1107,39 +1107,39 @@ export default function HomePage({ onGoToDashboard }) {
           </p>
         </div>
 
-        <div style={{
+        <div className="ecosystem-cards-row" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
+          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+          gap: 12,
         }}>
           {[
             {
-              title: 'Razorpay Payments API v1',
-              desc: 'Live polling and ingestion of failure error codes across NetBanking, Cards, and UPI rails.',
+              title: 'Razorpay Payments API',
+              desc: 'Real-time polling & ingestion of failure codes across NetBanking, Cards & UPI.',
               icon: CreditCard,
               badge: 'GET /v1/payments',
             },
             {
               title: 'Razorpay Payment Links',
-              desc: 'Autonomous dynamic recovery link generation with SMS, WhatsApp, and email customer copy.',
+              desc: 'Autonomous dynamic recovery link generation with multi-rail UPI/card options.',
               icon: Zap,
               badge: 'POST /v1/payment_links',
             },
             {
               title: 'Razorpay Webhooks',
-              desc: 'Signed HMAC-SHA256 listener for payment.failed and payment_link.paid loop closure.',
+              desc: 'Signed HMAC-SHA256 listener for payment.failed and link paid reconciliation.',
               icon: RefreshCw,
               badge: 'X-Razorpay-Signature',
             },
             {
               title: 'Razorpay Subscriptions',
-              desc: 'Handles recurring mandate decline recovery with intelligent bank schedule retry windows.',
+              desc: 'Handles recurring mandate decline recovery with intelligent retry windows.',
               icon: RotateCcw,
               badge: 'POST /v1/subscriptions',
             },
             {
-              title: 'Magic Checkout & B2B Invoices',
-              desc: 'Cart hold recovery for e-commerce checkouts and progressive dunning sequences for enterprise invoices.',
+              title: 'Magic Checkout & Invoices',
+              desc: 'Cart hold recovery for e-commerce checkouts and B2B dunning sequences.',
               icon: Layers,
               badge: 'Magic & Invoicing',
             },
@@ -1152,35 +1152,35 @@ export default function HomePage({ onGoToDashboard }) {
                   background: '#FFFFFF',
                   border: '1px solid #E2E8F0',
                   borderRadius: 8,
-                  padding: '20px',
+                  padding: '16px 14px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  gap: 14,
+                  gap: 12,
                 }}
               >
                 <div>
                   <div style={{
-                    width: 34,
-                    height: 34,
+                    width: 32,
+                    height: 32,
                     borderRadius: 6,
                     background: '#F0F9FF',
                     color: '#0284C7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 12,
+                    marginBottom: 10,
                   }}>
-                    <Icon size={18} />
+                    <Icon size={16} />
                   </div>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 6 }}>
+                  <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A', marginBottom: 5, lineHeight: 1.25 }}>
                     {item.title}
                   </h3>
-                  <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 11.5, color: '#64748B', lineHeight: 1.45 }}>
                     {item.desc}
                   </p>
                 </div>
-                <span style={{ fontSize: 10, background: '#F1F5F9', color: '#475569', padding: '3px 8px', borderRadius: 4, fontFamily: 'monospace', fontWeight: 600, width: 'fit-content' }}>
+                <span style={{ fontSize: 9.5, background: '#F1F5F9', color: '#475569', padding: '2px 7px', borderRadius: 4, fontFamily: 'monospace', fontWeight: 600, width: 'fit-content' }}>
                   {item.badge}
                 </span>
               </div>
@@ -1209,44 +1209,44 @@ export default function HomePage({ onGoToDashboard }) {
             </p>
           </div>
 
-          <div style={{
+          <div className="modules-cards-row" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 16,
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+            gap: 12,
           }}>
             {[
               {
                 step: 'Module 1',
                 title: 'Overview Dashboard',
-                desc: 'Batch run orchestrator, aggregate GMV recovery metrics, and cause breakdown charts.',
+                desc: 'Batch orchestrator, aggregate GMV metrics & root-cause charts.',
                 badge: 'Dashboard',
                 target: 'dashboard',
               },
               {
                 step: 'Module 2',
                 title: 'Payments & Links',
-                desc: 'Filterable transaction ledger with 1-click recovery and Razorpay payment link sync.',
+                desc: 'Filterable ledger with 1-click recovery & Razorpay link sync.',
                 badge: 'Payments Table',
                 target: 'payments',
               },
               {
                 step: 'Module 3',
                 title: 'Live Detector Stream',
-                desc: 'Real-time poller analyzing degradation patterns across Indian bank gateways.',
+                desc: 'Real-time poller analyzing bank gateway degradation patterns.',
                 badge: 'Detector Service',
                 target: 'detector',
               },
               {
                 step: 'Module 4',
                 title: 'Exception List',
-                desc: 'Honest, unrecoverable payment quarantine for compliance and human operator review.',
+                desc: 'Honest unrecoverable quarantine for compliance review.',
                 badge: 'Exceptions',
                 target: 'exceptions',
               },
               {
                 step: 'Module 5',
                 title: 'Immutable Audit Trail',
-                desc: 'Cryptographically verifiable, append-only log of every agent action and API response.',
+                desc: 'Verifiable append-only ledger of every autonomous agent action.',
                 badge: 'Audit Trail',
                 target: 'audit',
               },
@@ -1258,7 +1258,7 @@ export default function HomePage({ onGoToDashboard }) {
                   background: '#FFFFFF',
                   border: '1px solid #E2E8F0',
                   borderRadius: 8,
-                  padding: '20px',
+                  padding: '16px 14px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -1351,6 +1351,18 @@ export default function HomePage({ onGoToDashboard }) {
           </div>
         </div>
       </footer>
+      <style>{`
+        @media (max-width: 1024px) {
+          .ecosystem-cards-row, .modules-cards-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .ecosystem-cards-row, .modules-cards-row {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
