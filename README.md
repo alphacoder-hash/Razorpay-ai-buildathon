@@ -6,14 +6,14 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.2-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://reactjs.org/)
-[![Google Gemini](https://img.shields.io/badge/LLM-Gemini%202.0%20Flash-4285F4.svg)](https://aistudio.google.com/)
+[![xAI Grok](https://img.shields.io/badge/LLM-Grok%203%20Mini-000000.svg)](https://x.ai/)
 [![Razorpay API](https://img.shields.io/badge/Payments-Razorpay%20v1-02042B.svg)](https://razorpay.com/)
 [![Tests Passing](https://img.shields.io/badge/Tests-30%2F30%20Passing-success.svg)](#-verification--test-suite)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <p align="center">
   <b>Find revenue that’s slipping away and win it back autonomously.</b><br>
-  An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with Gemini 2.0 Flash, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
+  An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with Grok 3 Mini, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
 </p>
 
 [Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#-system-architecture) · [Decision Matrix](#-agent-policy--decision-matrix) · [API Reference](#-api-specification) · [Quick Start](#-quick-start-guide)
@@ -51,7 +51,7 @@ Currently, merchants either ignore failed payments (losing ₹Crores in top-line
 ### 1.2 The Solution: PayBack AI
 **PayBack AI** introduces an **autonomous, self-governing revenue recovery loop**:
 1. **Detects**: Continuously monitors Razorpay payment feeds and live webhooks for failures, cart abandonments, and at-risk authorizations.
-2. **Diagnoses**: Leverages **Google Gemini 2.0 Flash** to identify the exact technical and behavioral root cause from payment error codes and context.
+2. **Diagnoses**: Leverages **xAI Grok 3 Mini** to identify the exact technical and behavioral root cause from payment error codes and context.
 3. **Decides**: Matches each failure to a bounded, policy-governed intervention (instant retry, delayed backoff, alternate UPI/payment link, or progressive B2B dunning).
 4. **Drafts**: Dynamically generates personalized, high-conversion recovery copy in conversational Hinglish or professional English.
 5. **Executes & Closes the Loop**: Issues real Razorpay payment links and re-authorizations, reconciles settlement via live webhooks, halts upon cascade failures, and reports an **honest exception list** of unresolved cases.
@@ -73,12 +73,12 @@ Currently, merchants either ignore failed payments (losing ₹Crores in top-line
 
 | Track 03 Requirement | Specification in Brief | PayBack AI Implementation | Status |
 |---|---|---|:---:|
-| **Root Cause Diagnosis** | Diagnose payment degradation, cart drop-off, subscriptions, invoices | Gemini 2.0 Flash classifies across 8 distinct failure modes (`BANK_DECLINE`, `NETWORK_TIMEOUT`, `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `FRAUD_FLAG`, `CHECKOUT_ABANDONED`, `SUBSCRIPTION_FAILED`, `OVERDUE_INVOICE`). | **Met** |
+| **Root Cause Diagnosis** | Diagnose payment degradation, cart drop-off, subscriptions, invoices | Grok 3 Mini classifies across 8 distinct failure modes (`BANK_DECLINE`, `NETWORK_TIMEOUT`, `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `FRAUD_FLAG`, `CHECKOUT_ABANDONED`, `SUBSCRIPTION_FAILED`, `OVERDUE_INVOICE`). | **Met** |
 | **Bounded Recovery Workflow** | Bounded, non-infinite intervention execution | Explicit policy bounds: max 3 retries, exponential delay backoffs (2h for banks, 24h for balance), 7-day invoice grace windows. | **Met** |
 | **Compliant Escalation** | Compliance boundaries, defense-only, anti-abuse | Strict **Zero-Auto-Retry policy** on `FRAUD_FLAG`. Flagged payments immediately escalate to human risk review with frozen recovery actions. | **Met** |
 | **Stopping Rules** | Graceful failure handling; prevent cascade loops | Hard circuit-breaker: **2 consecutive recovery failures halt the entire batch**. Remaining records are audited as `SKIPPED`. | **Met** |
 | **Measured Money Recovered** | Concrete, verifiable ₹ metrics across batches | Tracks actual ₹ recovered, recovery rates %, and link reconciliation without cherry-picking or masked numbers. | **Met** |
-| **Honest Exception List** | Surface what the agent could *not* resolve | Dedicated `/exceptions` module grouping unresolved amounts by root cause, displaying customer details and Gemini reasoning. | **Met** |
+| **Honest Exception List** | Surface what the agent could *not* resolve | Dedicated `/exceptions` module grouping unresolved amounts by root cause, displaying customer details and Grok reasoning. | **Met** |
 | **Audit Trail** | Explainable, bounded, gated audit trail | Immutable `AuditLog` table logging timestamp, actor (`AI_AGENT`, `RAZORPAY_WEBHOOK`), action, result, and detail for every payment. | **Met** |
 | **Live API Integration** | Real Razorpay test-mode API interaction | End-to-end integration with Razorpay Python SDK: `GET /v1/payments`, `POST /v1/payment_links`, and `GET /v1/payment_links/{id}`. | **Met** |
 
@@ -94,7 +94,7 @@ flowchart TD
         A3[Synthetic Enterprise Batch] -->|60+ Records| D
     end
 
-    subgraph Intelligence["2. AI Diagnosis & Copywriting (Gemini 2.0 Flash)"]
+    subgraph Intelligence["2. AI Diagnosis & Copywriting (Grok 3 Mini)"]
         D --> E[Root Cause Classifier]
         E -->|JSON Output| F{Diagnosis Decision}
         F --> G[Explainable Root Cause]
@@ -151,10 +151,10 @@ Every monetary and communication action taken by PayBack AI is explainable, boun
 
 A key evaluation pillar for the Razorpay Buildathon is **AI Judgment**: using an LLM where reasoning is non-trivial, and deterministic code where precision and compliance are paramount.
 
-### Where We Used AI (Gemini 2.0 Flash)
-1. **Semantic Root Cause Analysis**: Payment error strings from banks and payment gateways in India are notoriously cryptic (e.g., `BAD_REQUEST_ERROR` with `"Your payment has been declined by the bank."` vs. `"Payment flagged for suspicious activity"`). Gemini infers the underlying behavioral and technical cause rather than relying on brittle regex.
+### Where We Used AI (Grok 3 Mini)
+1. **Semantic Root Cause Analysis**: Payment error strings from banks and payment gateways in India are notoriously cryptic (e.g., `BAD_REQUEST_ERROR` with `"Your payment has been declined by the bank."` vs. `"Payment flagged for suspicious activity"`). Grok infers the underlying behavioral and technical cause rather than relying on brittle regex.
 2. **Context-Aware Recovery Messaging (Hinglish/English)**:
-   Instead of robotic boilerplate templates, Gemini drafts conversational, friendly, high-converting customer messages:
+   Instead of robotic boilerplate templates, Grok drafts conversational, friendly, high-converting customer messages:
    > *"Namaste! Aapka cart payment complete nahi ho paya. Your items are reserved—please complete your order with 1-click UPI here."*
 
 ### Where We Intentionally Did NOT Use AI (Deterministic Code)
@@ -257,7 +257,7 @@ tests/test_webhooks.py::test_webhook_payment_link_paid_reconciles_status PASSED 
 - Python 3.12+ (or 3.14)
 - Node.js 18+ and npm
 - A Razorpay Test Mode account ([razorpay.com](https://razorpay.com))
-- A Google Gemini API Key ([aistudio.google.com](https://aistudio.google.com))
+- An xAI Grok API Key ([x.ai](https://x.ai/))
 
 ### 1. Clone & Configure Environment
 ```bash
@@ -269,7 +269,7 @@ Create `backend/.env`:
 ```env
 RAZORPAY_KEY_ID=rzp_test_your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
-GEMINI_API_KEY=your_gemini_api_key
+GROK_API_KEY=your_grok_api_key
 ```
 
 ### 2. Start Backend Server
@@ -308,7 +308,7 @@ To test PayBack AI against real Razorpay test-mode transactions:
    - The poller will pull the real failures directly from Razorpay's `GET /v1/payments` API.
 3. **Execute 1-Click Recovery**:
    - Click the **Recover** button on any live transaction.
-   - The agent immediately diagnoses the failure with Gemini 2.0 Flash, crafts customer copy, calls `client.payment_link.create()`, and updates the audit log.
+   - The agent immediately diagnoses the failure with Grok 3 Mini, crafts customer copy, calls `client.payment_link.create()`, and updates the audit log.
 4. **Reconcile Payment Settlement**:
    - Once you pay the newly generated recovery link in Razorpay test mode, click **Sync Paid Links** on the Payments page.
    - The status updates from `PENDING` → `RECOVERED`, showing verified money recovered!
@@ -318,7 +318,7 @@ To test PayBack AI against real Razorpay test-mode transactions:
 ## 11.0 Production Hardening & Roadmap
 
 - [x] Autonomous Loop: Detect → Classify → Recover → Audit
-- [x] Gemini 2.0 Flash Root Cause Diagnosis
+- [x] Grok 3 Mini Root Cause Diagnosis
 - [x] 8 Enterprise Failure Modes (including B2B Invoices & Cart Abandonment)
 - [x] Dynamic Bilingual Hinglish / English Copywriting
 - [x] Circuit-Breaker Stopping Rules & Fraud Compliance Gate
@@ -335,4 +335,4 @@ To test PayBack AI against real Razorpay test-mode transactions:
 - **Author**: Aryan ([@alphacoder-hash](https://github.com/alphacoder-hash))
 - **Event**: Razorpay AI Buildathon 2025
 - **Track**: Track 03 — AI Revenue Recovery
-- **Built With**: FastAPI, React, Google Gemini 2.0 Flash, Razorpay Python SDK
+- **Built With**: FastAPI, React, xAI Grok 3 Mini, Razorpay Python SDK

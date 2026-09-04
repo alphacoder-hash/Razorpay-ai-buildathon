@@ -1,9 +1,10 @@
 import logging
 import razorpay
 import random
+import time
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, MAX_RETRIES_PER_PAYMENT, NO_AUTO_RETRY, RECOVERY_ACTIONS
+from config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, MAX_RETRIES_PER_PAYMENT, NO_AUTO_RETRY, RECOVERY_ACTIONS, RETRY_DELAY_SECONDS
 from models.database import Payment, PaymentStatus
 from agent import audit
 
@@ -27,9 +28,12 @@ def execute(db: Session, payment: Payment) -> dict:
     msg = payment.recovery_message
 
     if action == "IMMEDIATE_RETRY":
-        return _retry_payment(db, payment, delay_label="immediate")
+        delay_secs = RETRY_DELAY_SECONDS.get(root_cause, 0)
+        return _retry_payment(db, payment, delay_label="immediate", delay_seconds=delay_secs)
     elif action == "DELAYED_RETRY":
-        return _retry_payment(db, payment, delay_label="delayed 2h")
+        delay_secs = RETRY_DELAY_SECONDS.get(root_cause, 7200)
+        delay_label = f"delayed {delay_secs // 3600}h" if delay_secs >= 3600 else f"delayed {delay_secs}s"
+        return _retry_payment(db, payment, delay_label=delay_label, delay_seconds=delay_secs)
     elif action == "SEND_PAYMENT_LINK":
         return _send_payment_link(db, payment, note=msg)
     elif action == "REQUEST_NEW_METHOD":
@@ -56,7 +60,7 @@ def execute(db: Session, payment: Payment) -> dict:
         return _escalate(db, payment, reason=f"No matching recovery action for root cause: {root_cause}")
 
 
-def _retry_payment(db: Session, payment: Payment, delay_label: str = "immediate") -> dict:
+def _retry_payment(db: Session, payment: Payment, delay_label: str = "immediate", delay_seconds: int = 0) -> dict:
     """
     NOTE: In Razorpay test mode, a failed payment cannot be re-captured via API.
     We simulate the retry outcome (70% success rate) to demonstrate the agent decision loop.
@@ -64,6 +68,13 @@ def _retry_payment(db: Session, payment: Payment, delay_label: str = "immediate"
     This is clearly labelled as SIMULATED_RETRY in the audit trail.
     """
     try:
+        # Log the configured delay window to audit trail (bounded recovery workflow)
+        if delay_seconds > 0:
+            delay_hrs = delay_seconds / 3600
+            audit.log(db, payment.id, "RETRY_SCHEDULED", "PENDING",
+                      f"Retry delay policy: {delay_label} ({delay_seconds}s / {delay_hrs:.1f}h) — "
+                      f"bounded by RETRY_DELAY_SECONDS[{payment.root_cause}]={delay_seconds}s")
+
         # Test-mode simulation — 70% success rate (clearly labelled)
         success = random.random() < 0.70
 
@@ -123,7 +134,17 @@ def _send_payment_link(db: Session, payment: Payment, note: str = None, action_l
             "notify": {"email": False, "sms": False},  # Fast mode: prevents 15s network notification timeouts on Razorpay test servers
             "reminder_enable": True,
         }
-        link = client.payment_link.create(payload)
+        link = None
+        for attempt in range(3):
+            try:
+                link = client.payment_link.create(payload)
+                break
+            except Exception as req_err:
+                if ("429" in str(req_err) or "too many requests" in str(req_err).lower()) and attempt < 2:
+                    time.sleep(1.0 * (attempt + 1))
+                    continue
+                raise req_err
+
         payment.status = PaymentStatus.PENDING
         payment.recovery_action = action_label
         payment.payment_link_id = link.get("id")  # plink_xxx for status reconciliation

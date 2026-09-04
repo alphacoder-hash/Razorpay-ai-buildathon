@@ -1,5 +1,6 @@
 import uuid
 import logging
+import time
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from models.database import Payment, BatchRun, PaymentStatus
@@ -68,7 +69,7 @@ def run_batch(db: Session, count: int = 60) -> dict:
                 logger.warning(f"[run_batch] Payment {p['id']} not found in DB, skipping")
                 continue
 
-            # Step 1: Classify root cause via Gemini
+            # Step 1: Classify root cause via Grok
             try:
                 audit.log(db, payment.id, "CLASSIFY", "STARTED",
                           f"Classifying error: {payment.error_code} — {payment.error_description} (Amount: ₹{payment.amount:,.2f})")
@@ -83,7 +84,7 @@ def run_batch(db: Session, count: int = 60) -> dict:
             except Exception as e:
                 logger.error(f"[run_batch] Classification failed for {payment.id}: {e}")
                 payment.root_cause = "UNKNOWN"
-                payment.gemini_reasoning = f"Classification failed: {str(e)}"
+                payment.gemini_reasoning = f"Classification failed: {str(e)}"  # ai_reasoning
                 db.commit()
                 audit.log(db, payment.id, "CLASSIFY", "ERROR", f"Classification error: {str(e)}")
 
@@ -122,6 +123,8 @@ def run_batch(db: Session, count: int = 60) -> dict:
                 consecutive_failures = 0
                 stopped_at_index = idx
                 agent_stopped = True
+
+            time.sleep(0.1)  # Throttle to respect Razorpay API rate limits
 
         except Exception as e:
             logger.error(f"[run_batch] Unexpected error processing payment {p.get('id')}: {e}")
@@ -180,7 +183,7 @@ def process_single(db: Session, payment_id: str) -> dict:
             except Exception as e:
                 logger.error(f"[process_single] Classification failed for {payment_id}: {e}")
                 payment.root_cause = "UNKNOWN"
-                payment.gemini_reasoning = f"Classification failed: {str(e)}"
+                payment.gemini_reasoning = f"Classification failed: {str(e)}"  # ai_reasoning
                 db.commit()
 
         try:

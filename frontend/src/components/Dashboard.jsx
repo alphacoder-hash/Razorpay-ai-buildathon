@@ -87,7 +87,7 @@ export default function Dashboard() {
               Autonomous Agent Active
             </h3>
             <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 20px', lineHeight: 1.5 }}>
-              Diagnosing {batchSize} payments with Gemini 3.6 Flash & dispatching Razorpay recovery links...
+              Diagnosing {batchSize} payments with Grok & dispatching Razorpay recovery links...
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#2563EB', fontSize: 13, fontWeight: 600 }}>
               <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />

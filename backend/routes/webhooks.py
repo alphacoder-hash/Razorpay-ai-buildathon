@@ -1,4 +1,8 @@
 import logging
+import hmac
+import hashlib
+import os
+import json
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from models.database import get_db, Payment, PaymentStatus
@@ -16,8 +20,27 @@ async def handle_razorpay_webhook(request: Request, db: Session = Depends(get_db
     1. 'payment.failed': automatically triggers the autonomous recovery pipeline.
     2. 'payment_link.paid': verifies payment link settlement and marks status RECOVERED.
     """
+    # ── Signature verification (compliance gate) ──────────────────────────────
+    raw_body = await request.body()
+    razorpay_signature = request.headers.get("X-Razorpay-Signature", "")
+    # RAZORPAY_WEBHOOK_SECRET must be set in .env for production.
+    # In dev/test mode without a secret configured, we skip verification and log a warning.
+    webhook_secret = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+    if webhook_secret:
+        expected = hmac.new(
+            webhook_secret.encode("utf-8"),
+            raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected, razorpay_signature):
+            logger.warning("[razorpay_webhook] Signature mismatch — request rejected")
+            raise HTTPException(status_code=400, detail="Invalid webhook signature")
+    else:
+        logger.warning("[razorpay_webhook] RAZORPAY_WEBHOOK_SECRET not set — skipping signature verification (dev mode)")
+
     try:
-        payload = await request.json()
+        import json
+        payload = json.loads(raw_body)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 

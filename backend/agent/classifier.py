@@ -1,8 +1,19 @@
 import json
-from google import genai
-from config import GEMINI_API_KEY, RECOVERY_ACTIONS
+from openai import OpenAI
+from config import GROK_API_KEY, RECOVERY_ACTIONS
 
-_client = genai.Client(api_key=GEMINI_API_KEY)
+# Auto-detect whether key is GroqCloud (gsk_...) or x.ai Grok (xai-...)
+if GROK_API_KEY and GROK_API_KEY.startswith("gsk_"):
+    _base_url = "https://api.groq.com/openai/v1"
+    _MODELS = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
+else:
+    _base_url = "https://api.x.ai/v1"
+    _MODELS = ["grok-3-mini", "grok-3", "grok-2"]
+
+_client = OpenAI(
+    api_key=GROK_API_KEY,
+    base_url=_base_url,
+)
 
 VALID_CAUSES = list(RECOVERY_ACTIONS.keys())
 _CACHE = {}
@@ -36,10 +47,25 @@ Rules:
 3. If unsure of root cause, use UNKNOWN.
 """
     try:
-        response = _client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
-        text = response.text.strip()
+        response = None
+        for model_name in _MODELS:
+            try:
+                resp = _client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                text = resp.choices[0].message.content
+                if text:
+                    response = text.strip()
+                    break
+            except Exception:
+                continue
+        if not response:
+            raise ValueError("All AI model attempts failed or returned empty response")
 
-        # Strip all markdown code fence variants Gemini may return
+        text = response
+
+        # Strip all markdown code fence variants the model may return
         if text.startswith("```"):
             text = text.split("\n", 1)[-1]
         if text.endswith("```"):
@@ -60,4 +86,3 @@ Rules:
             "reasoning": f"Classification failed: {str(e)}",
             "customer_message": "Please use this link to complete your pending transaction.",
         }
-

@@ -1,6 +1,7 @@
-import { LayoutDashboard, CreditCard, ScrollText, AlertTriangle, Radar } from 'lucide-react'
+import { Home, LayoutDashboard, CreditCard, ScrollText, AlertTriangle, Radar } from 'lucide-react'
 
 const NAV = [
+  { label: 'Home',        icon: <Home size={15} />,            id: 'home'       },
   { label: 'Overview',    icon: <LayoutDashboard size={15} />, id: 'dashboard'  },
   { label: 'Payments',    icon: <CreditCard size={15} />,      id: 'payments'   },
   { label: 'Exceptions',  icon: <AlertTriangle size={15} />,   id: 'exceptions' },
@@ -52,7 +53,7 @@ export default function Sidebar({ active, onChange }) {
 
       {/* Footer */}
       <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: "'DM Sans', sans-serif" }}>Razorpay Buildathon 2025</div>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: "'DM Sans', sans-serif" }}>Razorpay Buildathon 2026</div>
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', marginTop: 2 }}>Track 03 · Revenue Recovery</div>
       </div>
     </aside>

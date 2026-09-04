@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -11,7 +12,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="PayBack AI — Revenue Recovery Agent", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        init_db()
+        logger.info("Database initialised successfully")
+    except Exception as e:
+        logger.error(f"Database initialisation failed: {e}")
+        raise
+    yield
+
+
+app = FastAPI(title="PayBack AI — Revenue Recovery Agent", version="1.0.0", lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,15 +41,6 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception on {request.method} {request.url}: {exc}")
     return JSONResponse(status_code=500, content={"detail": "Internal server error", "error": str(exc)})
 
-
-@app.on_event("startup")
-def startup():
-    try:
-        init_db()
-        logger.info("Database initialised successfully")
-    except Exception as e:
-        logger.error(f"Database initialisation failed: {e}")
-        raise
 
 
 app.include_router(payments.router)

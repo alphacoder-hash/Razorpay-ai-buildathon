@@ -41,7 +41,7 @@ class Payment(Base):
     currency = Column(String, default="INR")
     status = Column(String, default=PaymentStatus.FAILED)
     root_cause = Column(String, nullable=True)
-    gemini_reasoning = Column(Text, nullable=True)   # Gemini's explanation, surfaced in UI
+    gemini_reasoning = Column(Text, nullable=True)   # Grok's explanation, surfaced in UI
     recovery_message = Column(Text, nullable=True)   # Tailored Hinglish/English customer copy
     payment_link_id = Column(String, nullable=True)  # Razorpay plink_xxx for loop closure
     retry_count = Column(Integer, default=0)
