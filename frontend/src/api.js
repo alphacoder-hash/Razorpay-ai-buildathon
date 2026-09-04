@@ -1,14 +1,17 @@
 import axios from 'axios'
-// In production on Vercel, VITE_API_URL points to the Railway backend URL
-// In local dev, falls back to '/api' which Vite proxies to http://localhost:8000
-const rawBaseURL = import.meta.env.VITE_API_URL || '/api'
+const PROD_BACKEND_URL = 'https://razorpay-ai-buildathon-production-788d.up.railway.app'
+
+// In local dev, Vite proxies /api to http://localhost:8000
+// In production (Vercel), default to the live Railway backend if VITE_API_URL is not set or points to old URL
+let rawBaseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : PROD_BACKEND_URL)
+if (rawBaseURL.includes('razorpay-ai-buildathon-production.up.railway.app')) {
+  rawBaseURL = PROD_BACKEND_URL
+}
 const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL
 
 const api = axios.create({ baseURL })
 
-export const TEST_CHECKOUT_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/test-checkout`
-  : 'http://localhost:8000/test-checkout'
+export const TEST_CHECKOUT_URL = `${baseURL}/test-checkout`
 
 export const runBatch        = (count = 60) => api.post(`/agent/run-batch?count=${count}`)
 export const getBatchRuns    = ()           => api.get('/agent/runs')
