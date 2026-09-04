@@ -35,6 +35,9 @@ def execute(db: Session, payment: Payment) -> dict:
         delay_label = f"delayed {delay_secs // 3600}h" if delay_secs >= 3600 else f"delayed {delay_secs}s"
         return _retry_payment(db, payment, delay_label=delay_label, delay_seconds=delay_secs)
     elif action == "SEND_PAYMENT_LINK":
+        # Smart fallback: for low-balance or bank-decline failures, prefer UPI link
+        if root_cause in ("INSUFFICIENT_FUNDS", "BANK_DECLINE"):
+            return _send_upi_payment_link(db, payment, note=msg)
         return _send_payment_link(db, payment, note=msg)
     elif action == "REQUEST_NEW_METHOD":
         return _send_payment_link(
@@ -137,7 +140,8 @@ def _b2b_dunning_sequence(db: Session, payment: Payment, note: str = None) -> di
     B2B Receivables Chaser: Progressive dunning workflow for overdue invoices.
     Level 0: Creates official Razorpay payment link with 7-day grace period.
     Level 1: Automated payment reminder follow-up.
-    Level 2: Escalation to Finance Manager.
+    Level 2: AI Voice Agent (Hinglish) soft collection call.
+    Level 3: Escalation to Finance Manager.
     """
     try:
         # Ignore if there is a promise to pay in the future
@@ -163,12 +167,94 @@ def _b2b_dunning_sequence(db: Session, payment: Payment, note: str = None) -> di
                 f"Level 1 Escalation: Automated SMS/Email reminder sent to {payment.customer_email}."
             )
             return {"status": payment.status, "action": "B2B_DUNNING_SEQUENCE", "payment_id": payment.id, "level": 1}
+        elif level == 2:
+            # AI Prioritization: only trigger expensive voice call for high-value invoices (>₹5000)
+            # Low-value invoices get a final SMS/email nudge instead to save costs
+            if payment.amount and payment.amount >= 5000:
+                return _trigger_hinglish_voice_agent(db, payment)
+            else:
+                audit.log(
+                    db, payment.id, "VOICE_TRIAGE", "SKIPPED",
+                    f"AI Prioritization: Invoice ₹{payment.amount:,.2f} is below ₹5,000 threshold. "
+                    f"Skipping expensive voice call — sending final SMS nudge instead."
+                )
+                return _send_final_sms_nudge(db, payment)
         else:
-            return _escalate(db, payment, reason=f"Level 2 Escalation: Invoice unpaid after reminders. Escalated to Finance Manager.")
+            return _escalate(db, payment, reason=f"Level 3 Escalation: Invoice unpaid after voice call. Escalated to Finance Manager.")
             
     except Exception as e:
         logger.error(f"[_b2b_dunning_sequence] Failed for {payment.id}: {e}")
         return _escalate(db, payment, reason=f"B2B dunning sequence failed: {str(e)}")
+
+
+def _trigger_hinglish_voice_agent(db: Session, payment: Payment) -> dict:
+    """
+    Simulates a Hinglish Voice Agent (e.g. Bland AI, Retell) calling the customer.
+    Logs the transcript to the audit trail.
+    """
+    try:
+        audit.log(
+            db, payment.id, "HINGLISH_VOICE_CALL", "INITIATED",
+            f"Level 2 Escalation: Triggering AI Voice Agent to call {payment.customer_phone}."
+        )
+        
+        # Simulate network latency of the call
+        time.sleep(1.5)
+        
+        transcript = (
+            "📞 *AI*: Namaste! Main PayBack AI se baat kar rahi hoon. Aapka ek recent invoice "
+            f"₹{payment.amount:,.2f} ka pending hai. Kya aap confirm kar sakte hain ki payment kab tak ho jayega?\n\n"
+            "🗣️ *Customer*: Haan ma'am, actually thoda fund transfer delay ho gaya tha. Main kal subah tak kara dunga.\n\n"
+            "📞 *AI*: Okay, no problem. Toh main system mein update kar deti hoon ki aap kal (tomorrow) tak payment clear kar denge. "
+            "Aapke number pe Razorpay link already bheja hua hai. Thank you!"
+        )
+        
+        audit.log(
+            db, payment.id, "HINGLISH_VOICE_CALL", "COMPLETED",
+            f"Voice Agent successfully completed call. Captured Promise-to-Pay for tomorrow.\n\nTranscript Summary:\n{transcript}"
+        )
+        
+        return {"status": payment.status, "action": "B2B_DUNNING_SEQUENCE", "payment_id": payment.id, "level": 2}
+
+    except Exception as e:
+        logger.error(f"[_trigger_hinglish_voice_agent] Failed for {payment.id}: {e}")
+        return _escalate(db, payment, reason=f"Voice agent call failed: {str(e)}")
+
+
+def _send_final_sms_nudge(db: Session, payment: Payment) -> dict:
+    """For low-value invoices (<₹5000), send a cost-efficient final SMS reminder."""
+    try:
+        audit.log(
+            db, payment.id, "SMS_NUDGE", "SENT",
+            f"Final SMS nudge dispatched to {payment.customer_phone}: "
+            f"'Namaste! Aapka ₹{payment.amount:,.2f} ka outstanding balance hai. "
+            f"Please complete payment via the link sent earlier. — PayBack AI'"
+        )
+        return {"status": payment.status, "action": "SMS_NUDGE", "payment_id": payment.id, "level": 2}
+    except Exception as e:
+        logger.error(f"[_send_final_sms_nudge] Failed for {payment.id}: {e}")
+        return _escalate(db, payment, reason=f"SMS nudge failed: {str(e)}")
+
+
+def _send_upi_payment_link(db: Session, payment: Payment, note: str = None) -> dict:
+    """
+    Smart Fallback: For INSUFFICIENT_FUNDS and BANK_DECLINE, generate a UPI-specific
+    Razorpay payment link encouraging multi-rail UPI payment (PhonePe, GPay, Paytm).
+    Logs a UPI_SMART_FALLBACK event in the audit trail.
+    """
+    upi_note = note or (
+        f"Aapka card payment failed ho gaya. Koi baat nahi! Is link se "
+        f"PhonePe, GPay, ya Paytm UPI se ₹{payment.amount:,.2f} pay karein — "
+        f"instant aur secure. | Your card payment could not be processed. "
+        f"Use this link to pay via any UPI app instantly."
+    )
+    audit.log(
+        db, payment.id, "UPI_SMART_FALLBACK", "TRIGGERED",
+        f"AI Fallback: Card/bank failure detected (root cause: {payment.root_cause}). "
+        f"Switching recovery channel to UPI multi-rail payment link for ₹{payment.amount:,.2f}. "
+        f"Fallback covers PhonePe, GPay, Paytm, BHIM UPI."
+    )
+    return _send_payment_link(db, payment, note=upi_note, action_label="UPI_SMART_FALLBACK")
 
 
 def _send_payment_link(db: Session, payment: Payment, note: str = None, action_label: str = "PAYMENT_LINK_SENT") -> dict:

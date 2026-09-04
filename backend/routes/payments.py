@@ -211,3 +211,74 @@ def trigger_voice_recovery(payment_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"[trigger_voice_recovery] Failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+from pydantic import BaseModel
+
+class CustomerReplyPayload(BaseModel):
+    reply: str
+
+@router.post("/{payment_id}/analyze-reply")
+def analyze_customer_reply(payment_id: str, body: CustomerReplyPayload, db: Session = Depends(get_db)):
+    """
+    Feature: Inbound Customer Sentiment Analysis.
+    Accepts an inbound customer reply (e.g., WhatsApp / email response),
+    classifies it as HARDSHIP / DISPUTE / PAYMENT_PLANNED / READY_TO_PAY / UNCLEAR,
+    and recommends an automated action (pause dunning, send link, escalate to support).
+    """
+    try:
+        payment = db.query(Payment).filter(Payment.id == payment_id).first()
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+
+        from agent import sentiment
+        result = sentiment.analyze(body.reply)
+
+        audit.log(
+            db, payment.id, "SENTIMENT_ANALYSIS", result.get("label", "UNCLEAR"),
+            f"Customer reply analyzed. Sentiment: {result.get('label')} "
+            f"(confidence: {result.get('confidence', 0):.0%}). "
+            f"Reasoning: {result.get('reasoning')}. "
+            f"Recommended action: {result.get('recommended_action')}. "
+            f"AI empathy response: '{result.get('empathy_response')}'. "
+            f"Original reply: \"{body.reply}\""
+        )
+
+        # Take automated action based on sentiment
+        recommended = result.get("recommended_action", "CONTINUE_DUNNING")
+        if recommended == "PAUSE_DUNNING":
+            payment.status = PaymentStatus.PROMISED
+            db.commit()
+            audit.log(
+                db, payment.id, "DUNNING_PAUSED_SENTIMENT", "DONE",
+                f"Dunning paused automatically after detecting '{result.get('label')}' sentiment. "
+                f"Payment moved to PROMISED state pending human review."
+            )
+        elif recommended == "ESCALATE_SUPPORT":
+            payment.status = PaymentStatus.ESCALATED
+            payment.recovery_action = "ESCALATED_DISPUTE"
+            db.commit()
+            audit.log(
+                db, payment.id, "DISPUTE_ESCALATED", "ESCALATED",
+                f"Customer reply indicates a DISPUTE. Escalated to support team for investigation."
+            )
+        elif recommended == "SEND_PAYMENT_LINK":
+            # Customer is ready to pay — fire off a fresh payment link
+            from agent import recovery as rec
+            rec._send_payment_link(db, payment, note="You requested a new payment link. Please use this to complete your transaction.", action_label="SENTIMENT_TRIGGERED_LINK")
+
+        return {
+            "payment_id": payment_id,
+            "sentiment": result.get("label"),
+            "confidence": result.get("confidence"),
+            "reasoning": result.get("reasoning"),
+            "empathy_response": result.get("empathy_response"),
+            "recommended_action": recommended,
+            "action_taken": recommended,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[analyze_customer_reply] Failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

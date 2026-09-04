@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getAuditTrail, getPaymentDetails, triggerVoiceRecovery } from '../api'
+import { getAuditTrail, getPaymentDetails, triggerVoiceRecovery, analyzeCustomerReply } from '../api'
 import {
   X, Bot, CheckCircle2, XCircle, AlertTriangle, Clock, 
   PhoneCall, Volume2, Play, Square, Brain, MessageSquare,
@@ -57,6 +57,10 @@ export default function AuditModal({ paymentId, onClose }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isTriggering, setIsTriggering] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
+  const [sentimentReply, setSentimentReply] = useState('')
+  const [sentimentResult, setSentimentResult] = useState(null)
+  const [analyzingReply, setAnalyzingReply] = useState(false)
+  const [showSentimentPanel, setShowSentimentPanel] = useState(false)
 
   const fetchData = async () => {
     setLoading(true)
@@ -83,6 +87,20 @@ export default function AuditModal({ paymentId, onClose }) {
       console.error(e)
     }
     setIsTriggering(false)
+  }
+
+  const handleAnalyzeReply = async () => {
+    if (!sentimentReply.trim() || analyzingReply) return
+    setAnalyzingReply(true)
+    setSentimentResult(null)
+    try {
+      const res = await analyzeCustomerReply(paymentId, sentimentReply)
+      setSentimentResult(res.data)
+      await fetchData() // refresh audit trail
+    } catch (e) {
+      setSentimentResult({ error: 'Analysis failed. Please try again.' })
+    }
+    setAnalyzingReply(false)
   }
 
   useEffect(() => {
@@ -274,6 +292,99 @@ export default function AuditModal({ paymentId, onClose }) {
                 {isPlaying ? 'Stop' : 'Listen Script'}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── Sentiment Analysis Panel ───────── */}
+        {payment && (
+          <div style={{
+            borderBottom: `1px solid ${C.border}`,
+            background: '#FAFBFC',
+          }}>
+            <button
+              onClick={() => setShowSentimentPanel(p => !p)}
+              style={{
+                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                padding: '10px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                color: C.textSub, fontSize: 11, fontWeight: 600,
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MessageSquare size={12} color={C.purple} />
+                Simulate Customer Reply (Sentiment Analysis)
+              </span>
+              <ChevronRight size={12} style={{ transform: showSentimentPanel ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {showSentimentPanel && (
+              <div style={{ padding: '0 22px 14px' }}>
+                <p style={{ fontSize: 11, color: C.textMuted, marginBottom: 8 }}>
+                  Enter what the customer wrote back (e.g. WhatsApp/email reply). AI will classify sentiment and take an automated action.
+                </p>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  <textarea
+                    value={sentimentReply}
+                    onChange={e => setSentimentReply(e.target.value)}
+                    placeholder='e.g. "Bhai meri job chali gayi hai, please thoda time do" or "I never authorized this charge"'
+                    rows={2}
+                    style={{
+                      flex: 1, border: `1px solid ${C.border}`, borderRadius: 8,
+                      padding: '8px 10px', fontSize: 11, fontFamily: "'DM Sans', sans-serif",
+                      resize: 'none', color: C.text, background: C.white,
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={handleAnalyzeReply}
+                    disabled={analyzingReply || !sentimentReply.trim()}
+                    style={{
+                      background: analyzingReply ? C.border : `linear-gradient(135deg, ${C.purple}, ${C.indigo})`,
+                      color: '#fff', border: 'none', borderRadius: 8,
+                      padding: '8px 14px', fontSize: 11, fontWeight: 700,
+                      cursor: analyzingReply || !sentimentReply.trim() ? 'not-allowed' : 'pointer',
+                      whiteSpace: 'nowrap', flexShrink: 0,
+                    }}
+                  >
+                    {analyzingReply ? 'Analyzing…' : '🧠 Analyze'}
+                  </button>
+                </div>
+
+                {sentimentResult && !sentimentResult.error && (
+                  <div style={{
+                    marginTop: 10, padding: '10px 14px', borderRadius: 8,
+                    border: `1px solid ${C.border}`, background: C.white,
+                    display: 'flex', flexDirection: 'column', gap: 6,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700,
+                        background: sentimentResult.sentiment === 'HARDSHIP' ? '#FEF3C7' :
+                                    sentimentResult.sentiment === 'DISPUTE' ? '#FEE2E2' :
+                                    sentimentResult.sentiment === 'READY_TO_PAY' ? '#ECFDF5' : '#F5F3FF',
+                        color: sentimentResult.sentiment === 'HARDSHIP' ? '#92400E' :
+                               sentimentResult.sentiment === 'DISPUTE' ? '#991B1B' :
+                               sentimentResult.sentiment === 'READY_TO_PAY' ? '#065F46' : '#5B21B6',
+                      }}>
+                        {sentimentResult.sentiment}
+                      </span>
+                      <span style={{ fontSize: 10, color: C.textMuted }}>
+                        {Math.round((sentimentResult.confidence || 0) * 100)}% confidence
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: C.blue, marginLeft: 'auto' }}>
+                        → {sentimentResult.action_taken}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 11, color: C.textSub, margin: 0 }}>{sentimentResult.reasoning}</p>
+                    <p style={{ fontSize: 11, color: C.emerald, margin: 0, fontStyle: 'italic' }}>
+                      💬 AI: "{sentimentResult.empathy_response}"
+                    </p>
+                  </div>
+                )}
+                {sentimentResult?.error && (
+                  <p style={{ fontSize: 11, color: C.crimson, marginTop: 8 }}>{sentimentResult.error}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
