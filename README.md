@@ -100,20 +100,20 @@ Currently, merchants either ignore failed payments (losing ₹Crores in top-line
 
 ```mermaid
 flowchart TD
-    subgraph Ingestion["1. Detection & Ingestion Layer"]
+    subgraph Ingestion["1. Detection and Ingestion Layer"]
         A1[Razorpay Live API Poller] -->|GET /v1/payments| D[Orchestrator Ingestion]
         A2[Razorpay Webhook Listener] -->|POST /webhooks/razorpay| D
         A3[Synthetic Enterprise Batch] -->|60+ Records| D
     end
 
-    subgraph Intelligence["2. AI Diagnosis & Copywriting (Grok 3 Mini)"]
+    subgraph Intelligence["2. AI Diagnosis and Copywriting - Grok 3 Mini"]
         D --> E[Root Cause Classifier]
         E -->|JSON Output| F{Diagnosis Decision}
         F --> G[Explainable Root Cause]
-        F --> H[Dynamic Hinglish/English Copy]
+        F --> H[Dynamic Hinglish / English Copy]
     end
 
-    subgraph PolicyEngine["3. Bounded Policy & Compliance Engine"]
+    subgraph PolicyEngine["3. Bounded Policy and Compliance Engine"]
         G --> I{Compliance Check}
         I -->|FRAUD_FLAG| J[Human Escalation Block]
         I -->|Clean / Valid| K{Action Router}
@@ -123,20 +123,26 @@ flowchart TD
     end
 
     subgraph CircuitBreaker["4. Stopping Rule Circuit Breaker"]
-        L & M & N --> O{Outcome Check}
+        L --> O{Outcome Check}
+        M --> O
+        N --> O
         O -->|2 Consecutive Failures| P[HALT BATCH: Log SKIPPED]
         O -->|Success / Pending| Q[Update Batch Run KPIs]
     end
 
-    subgraph Reconciliation["5. Loop Closure & Settlement"]
-        M & N --> R[Link Settlement Sync / Webhook]
+    subgraph Reconciliation["5. Loop Closure and Settlement"]
+        M --> R[Link Settlement Sync / Webhook]
+        N --> R
         R -->|payment_link.paid| S[Status: RECOVERED]
-        J & P --> T[Status: ESCALATED / FAILED]
+        J --> T[Status: ESCALATED / FAILED]
+        P --> T
     end
 
     subgraph Storage["6. Immutable Audit Trail"]
-        Q & S & T --> U[(SQLite DB + Audit Logs)]
-        U --> V[Executive Dashboard & Exception List]
+        Q --> U[(SQLite DB + Audit Logs)]
+        S --> U
+        T --> U
+        U --> V[Executive Dashboard and Exception List]
     end
 ```
 
