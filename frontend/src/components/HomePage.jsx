@@ -4,38 +4,47 @@ import {
   ChevronRight, Sparkles, TrendingUp, RefreshCw, BarChart2,
   CheckCircle, ArrowUpRight, Cpu, Layers, ExternalLink,
   Sliders, AlertTriangle, Play, Lock, Award, FileText, Check,
-  CreditCard, Clock, RotateCcw, AlertOctagon, Terminal
+  CreditCard, Clock, RotateCcw, AlertOctagon, Terminal,
+  MessageSquare, Smartphone, User, ShoppingBag, ShieldAlert
 } from 'lucide-react'
 import { getPayments, getBatchRuns } from '../api'
 
 const SIMULATOR_SCENARIOS = [
   {
     id: 'insufficient_funds',
-    title: 'Insufficient Funds (D2C Cart)',
-    tag: 'UPI / Card Drop-off',
-    tagColor: '#D97706',
+    title: 'Low Balance on UPI',
+    customerName: 'Priya Sharma (Mumbai)',
+    merchantName: 'The Souled Store',
+    tag: 'UPI / Account Balance',
+    tagColor: '#B45309',
     tagBg: '#FEF3C7',
     amount: 4499,
+    humanProblem: 'Customer clicked "Pay" with SBI UPI, but their savings balance was ₹180 short of the ₹4,499 total.',
+    humanSolution: 'AI generates a personalized Hinglish WhatsApp message with an alternate multi-rail Razorpay link so Priya can pay with PhonePe, GPay, or credit card.',
     errorCode: 'BAD_REQUEST_PAYMENT_ACCOUNT_INSUFFICIENT_BALANCE',
     errorDesc: 'Customer bank reported balance lower than transaction total',
     rootCause: 'INSUFFICIENT_FUNDS',
     confidence: 0.98,
     action: 'SEND_PAYMENT_LINK',
-    actionDisplay: 'Generate Multi-Rail Razorpay Recovery Link',
-    reasoning: 'Debit attempt failed due to bank account balance threshold. Buyer displayed high intent with 3 items in cart.',
-    hinglishCopy: 'Aapka ₹4,499 ka order complete nahi ho paya. Kisi doosre account ya alternate UPI app se turant payment complete karne ke liye is link par click karein:',
+    actionDisplay: 'Smart WhatsApp & SMS Recovery Link Generated',
+    reasoning: 'Debit attempt declined due to account balance threshold. Buyer displayed high purchase intent. Safe for alternate payment link.',
+    hinglishCopy: 'Hi Priya! Aapka ₹4,499 ka order complete nahi ho paya. Kisi doosre account ya alternate UPI app se turant payment complete karne ke liye is link par click karein:',
     linkId: 'plink_Nz8K9qLm2Xp4wQ',
-    outcome: 'RECOVERED (Customer paid via alternate UPI ID within 4 mins)',
+    outcome: '₹4,499 Recovered (Customer completed payment via alternate UPI in 3.8 mins)',
     outcomeColor: '#059669',
-    complianceNote: 'Auto-retries disabled to prevent repeated bank NSF penalties.',
+    complianceNote: 'Auto-retries blocked to prevent repeated bank NSF penalties.',
   },
   {
     id: 'gateway_timeout',
-    title: 'HDFC Gateway Degradation',
-    tag: 'Bank Downtime Timeout',
-    tagColor: '#2563EB',
+    title: 'HDFC Bank Switch Timeout',
+    customerName: 'Rahul Verma (Bengaluru)',
+    merchantName: 'Zepto Quick Commerce',
+    tag: 'Bank Downtime Glitch',
+    tagColor: '#1D4ED8',
     tagBg: '#EFF6FF',
     amount: 12850,
+    humanProblem: 'Customer entered OTP, but the bank switch timed out after 30 seconds due to high traffic.',
+    humanSolution: 'AI detects this was an upstream bank drop, checks idempotency, and safely executes an autonomous backoff retry without double-charging.',
     errorCode: 'GATEWAY_ERROR_TIMED_OUT',
     errorDesc: 'HDFC gateway node took >30000ms, ACK dropped at 2FA step',
     rootCause: 'NETWORK_TIMEOUT',
@@ -43,49 +52,57 @@ const SIMULATOR_SCENARIOS = [
     action: 'IMMEDIATE_RETRY',
     actionDisplay: 'Autonomous Gateway Retry with Exponential Backoff',
     reasoning: 'Temporary upstream switch latency. Customer authenticated successfully. Transaction is safe for idempotent auto-retry.',
-    hinglishCopy: 'Bank server me temporary delay ki wajah se transaction ruk gaya. Humne aapke payment ko bina kisi extra charge ke auto-retry kar diya hai.',
+    hinglishCopy: 'Hi Rahul! Bank server me temporary delay ki wajah se transaction ruk gaya tha. Humne bina kisi extra charge ke auto-retry kar ke aapka order confirm kar diya hai.',
     linkId: 'retry_job_0912x',
-    outcome: 'RECOVERED (Re-authorized on fallback switch in 820ms)',
+    outcome: '₹12,850 Recovered (Re-authorized on fallback switch in 820ms)',
     outcomeColor: '#059669',
     complianceNote: 'Circuit breaker active: halts if 2 consecutive bank failures occur.',
   },
   {
     id: 'magic_checkout',
-    title: 'Magic Checkout Abandonment',
-    tag: 'Funnel Drop-off',
-    tagColor: '#7C3AED',
+    title: 'Magic Checkout Cart Drop-off',
+    customerName: 'Ananya Sen (Kolkata)',
+    merchantName: 'Lenskart Online',
+    tag: 'Funnel Abandonment',
+    tagColor: '#6D28D9',
     tagBg: '#F5F3FF',
     amount: 2299,
+    humanProblem: 'Customer auto-filled shipping address on Magic Checkout, but closed the browser before entering OTP.',
+    humanSolution: 'AI locks cart inventory for 45 minutes and sends a friendly 1-click WhatsApp cart recovery notification with no re-entry needed.',
     errorCode: 'CHECKOUT_ABANDONED_STEP_OTP',
     errorDesc: 'Buyer abandoned checkout session after address auto-fill on OTP screen',
     rootCause: 'CHECKOUT_ABANDONED',
     confidence: 0.95,
     action: 'SEND_ABANDONMENT_LINK',
-    actionDisplay: 'Dispatch 1-Click WhatsApp Recovery with Reserved Inventory',
+    actionDisplay: '1-Click WhatsApp Cart Hold Link Dispatched',
     reasoning: 'High-propensity abandonment at final verification. Cart inventory locked for 45 minutes.',
-    hinglishCopy: 'Aapka cart reserve kar diya gaya hai! Sirf 1-tap me bina dobara details bhare apna order complete karein:',
+    hinglishCopy: 'Hi Ananya! Aapka cart reserve kar diya gaya hai! Sirf 1-tap me bina dobara details bhare apna order complete karein:',
     linkId: 'plink_CartHold_77a',
-    outcome: 'RECOVERED (Recovered within 6 minutes via WhatsApp nudge)',
+    outcome: '₹2,299 Recovered (Customer completed checkout via WhatsApp in 5.4 mins)',
     outcomeColor: '#059669',
     complianceNote: 'Strict frequency capping: maximum 1 recovery reminder per session.',
   },
   {
     id: 'fraud_flag',
-    title: 'Suspicious Velocity Spike',
-    tag: 'Compliance Escalation',
-    tagColor: '#DC2626',
+    title: 'Suspicious Velocity Spike (Fraud)',
+    customerName: 'Untrusted Device (Frankfurt Proxy)',
+    merchantName: 'Apple Premium Reseller',
+    tag: 'Compliance Lockdown',
+    tagColor: '#B91C1C',
     tagBg: '#FEE2E2',
     amount: 89500,
+    humanProblem: '4 rapid international card attempts from a masked VPN proxy IP trying to buy expensive electronics.',
+    humanSolution: 'AI immediately HALTS all automated actions, prevents any customer notification, and flags the transaction for human risk compliance review.',
     errorCode: 'FRAUD_SUSPECTED_VELOCITY_SPIKE',
     errorDesc: '4 rapid international card attempts from proxy IP pool within 90 seconds',
     rootCause: 'FRAUD_FLAG',
     confidence: 0.99,
     action: 'ESCALATE_HUMAN',
-    actionDisplay: 'HALT ALL RETRIES & Quarantine to Honest Exception List',
+    actionDisplay: 'HALTED & Escalated to Human Risk Desk',
     reasoning: 'Risk engine detected anomalous velocity pattern. High chargeback probability. Auto-retry strictly prohibited by policy.',
-    hinglishCopy: 'Transaction security review ke liye hold par hai. Hamari compliance team aapse jaldi contact karegi.',
+    hinglishCopy: 'Transaction security review ke liye hold par hai. Hamari compliance team review karegi.',
     linkId: 'quarantine_audit_881',
-    outcome: 'ESCALATED (Zero automated retries, routed to Risk Desk)',
+    outcome: 'QUARANTINED (0 retries executed, saved ₹89,500 chargeback risk)',
     outcomeColor: '#DC2626',
     complianceNote: 'RBI & PCI-DSS guardrail: Zero automated retries on fraud classifications.',
   },
@@ -547,350 +564,467 @@ export default function HomePage({ onGoToDashboard }) {
         </div>
       </section>
 
-      {/* ⚡ NEW: Interactive "Try Live" Agent Simulator Section (HIGH IMPACT FOR JUDGES) */}
+      {/* ⚡ INTERACTIVE SIMULATOR: Human-Friendly, Professional Fintech Experience */}
       <section id="simulator" style={{
         maxWidth: 1180,
         margin: '0 auto',
         padding: '64px 24px',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <Cpu size={16} />
-            Interactive Agent Demo · Try It in 1-Click
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            padding: '5px 14px',
+            borderRadius: 20,
+            fontSize: 12,
+            color: '#1D4ED8',
+            fontWeight: 700,
+            marginBottom: 12,
+          }}>
+            <Sparkles size={14} color="#2563EB" />
+            1-Click Interactive Showcase · Test It Live
           </div>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>
-            Watch the AI Recovery Agent Make Decisions in Real Time
+            See How PayBack AI Recovers a Lost Payment
           </h2>
-          <p style={{ color: '#64748B', fontSize: 14, marginTop: 4, maxWidth: 640, margin: '6px auto 0' }}>
-            Select any real-world payment failure scenario below to trigger the autonomous 5-stage recovery pipeline.
+          <p style={{ color: '#475569', fontSize: 14, marginTop: 4, maxWidth: 660, margin: '6px auto 0', lineHeight: 1.55 }}>
+            Pick a real-world checkout failure scenario below. Watch how our agent diagnoses the cause in milliseconds, crafts conversational Hinglish copy, and wins back lost revenue safely.
           </p>
         </div>
 
-        {/* Scenario Selection Tabs */}
+        {/* 4 Clean Scenario Cards */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: 12,
+          gap: 14,
           marginBottom: 24,
         }}>
           {SIMULATOR_SCENARIOS.map(sc => {
             const isSelected = selectedScenario.id === sc.id
             return (
-              <button
+              <div
                 key={sc.id}
                 onClick={() => handleRunSimulator(sc)}
                 style={{
-                  background: isSelected ? '#FFFFFF' : '#F8FAFC',
+                  background: '#FFFFFF',
                   border: isSelected ? '2px solid #0284C7' : '1px solid #E2E8F0',
                   borderRadius: 10,
                   padding: '16px 18px',
                   textAlign: 'left',
                   cursor: 'pointer',
-                  boxShadow: isSelected ? '0 4px 12px rgba(2,132,199,0.15)' : 'none',
-                  transition: 'all 0.15s',
+                  boxShadow: isSelected ? '0 4px 16px rgba(2,132,199,0.14)' : '0 1px 3px rgba(0,0,0,0.03)',
+                  transition: 'all 0.15s ease',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 8,
+                  gap: 10,
+                  position: 'relative',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                {isSelected && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -10,
+                    right: 14,
+                    background: '#0284C7',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                    letterSpacing: '0.04em',
+                    boxShadow: '0 2px 6px rgba(2,132,199,0.25)',
+                  }}>
+                    ACTIVE SCENARIO
+                  </span>
+                )}
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{
                     fontSize: 11,
                     fontWeight: 700,
-                    padding: '2px 8px',
+                    padding: '3px 8px',
                     borderRadius: 4,
                     background: sc.tagBg,
                     color: sc.tagColor,
                   }}>
                     {sc.tag}
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: '#0C2340' }}>
                     ₹{sc.amount.toLocaleString('en-IN')}
                   </span>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>
-                  {sc.title}
+
+                <div>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 3 }}>
+                    {sc.title}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <User size={12} />
+                    {sc.customerName}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'monospace' }}>
-                  {sc.errorCode}
+
+                <div style={{
+                  fontSize: 11.5,
+                  color: '#475569',
+                  background: '#F8FAFC',
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  border: '1px solid #F1F5F9',
+                  lineHeight: 1.45,
+                }}>
+                  {sc.humanProblem}
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>
 
-        {/* Live Simulation Visualizer Terminal */}
+        {/* Live Simulation Player Box */}
         <div style={{
-          background: '#0C1B2E',
-          borderRadius: 12,
-          border: '1px solid #1E293B',
+          background: '#FFFFFF',
+          borderRadius: 14,
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.08)',
           overflow: 'hidden',
-          boxShadow: '0 10px 25px -5px rgba(12, 27, 46, 0.4)',
         }}>
-          {/* Terminal Titlebar */}
+          {/* Player Header Bar */}
           <div style={{
-            background: '#071220',
-            padding: '12px 20px',
+            background: '#F8FAFC',
+            padding: '16px 24px',
+            borderBottom: '1px solid #E2E8F0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #1E293B',
+            flexWrap: 'wrap',
+            gap: 14,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#EF4444' }} />
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F59E0B' }} />
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10B981' }} />
-              <span style={{ fontSize: 12, color: '#94A3B8', fontFamily: 'monospace', marginLeft: 8 }}>
-                payback_agent::orchestrator.py — execution_trace
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: '#0C2340',
+                color: '#38BDF8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Zap size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#0F172A' }}>
+                  {selectedScenario.title} · Incident #{selectedScenario.linkId.slice(-6).toUpperCase()}
+                </div>
+                <div style={{ fontSize: 12, color: '#64748B' }}>
+                  Merchant: <strong>{selectedScenario.merchantName}</strong> · Customer: {selectedScenario.customerName}
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#38BDF8', fontFamily: 'monospace' }}>
-              <Terminal size={14} />
-              {isSimulating ? 'AGENT EXECUTING...' : 'PIPELINE COMPLETE'}
+
+            {/* Stepper Indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700 }}>
+              <span style={{ color: simStep >= 1 ? '#0284C7' : '#94A3B8' }}>1. Failure</span>
+              <span style={{ color: '#CBD5E1' }}>➔</span>
+              <span style={{ color: simStep >= 2 ? '#0284C7' : '#94A3B8' }}>2. AI Diagnosis</span>
+              <span style={{ color: '#CBD5E1' }}>➔</span>
+              <span style={{ color: simStep >= 3 ? '#0284C7' : '#94A3B8' }}>3. Customer Nudge</span>
+              <span style={{ color: '#CBD5E1' }}>➔</span>
+              <span style={{ color: simStep >= 5 ? '#059669' : '#94A3B8' }}>4. Recovered</span>
             </div>
+
+            <button
+              onClick={() => handleRunSimulator(selectedScenario)}
+              disabled={isSimulating}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#0284C7',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: 6,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: isSimulating ? 'wait' : 'pointer',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => !isSimulating && (e.currentTarget.style.background = '#0369A1')}
+              onMouseLeave={e => !isSimulating && (e.currentTarget.style.background = '#0284C7')}
+            >
+              <RefreshCw size={13} className={isSimulating ? 'animate-spin' : ''} />
+              {isSimulating ? 'Simulating...' : 'Replay Live Flow'}
+            </button>
           </div>
 
-          {/* Terminal Body */}
-          <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }}>
-            {/* Left: 5-Stage Agent Execution Pipeline */}
+          {/* Main Stage: 2-Column Balanced Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 1fr',
+            padding: '24px',
+            gap: 24,
+            background: '#FFFFFF',
+          }}>
+            {/* Left: The Human Customer Journey */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Step 1 */}
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Customer Experience & Autonomous Intervention
+              </div>
+
+              {/* Step 1: The Problem */}
               <div style={{
+                background: '#FFF1F2',
+                border: '1px solid #FECDD3',
+                borderRadius: 8,
+                padding: '14px 16px',
                 display: 'flex',
+                alignItems: 'flex-start',
                 gap: 12,
-                opacity: simStep >= 1 ? 1 : 0.3,
-                transition: 'opacity 0.2s',
               }}>
                 <div style={{
-                  width: 26,
-                  height: 26,
+                  width: 24,
+                  height: 24,
                   borderRadius: '50%',
-                  background: simStep >= 1 ? '#0284C7' : '#334155',
-                  color: '#fff',
+                  background: '#FEE2E2',
+                  color: '#DC2626',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
                   flexShrink: 0,
+                  marginTop: 1,
                 }}>
-                  1
+                  <AlertTriangle size={14} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
-                    Signal Ingestion & Error Interception
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#991B1B' }}>
+                    Payment Interrupted (₹{selectedScenario.amount.toLocaleString('en-IN')})
                   </div>
-                  <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>
-                    Captured event for ₹{selectedScenario.amount.toLocaleString('en-IN')} · Code: <code style={{ color: '#F87171' }}>{selectedScenario.errorCode}</code>
+                  <div style={{ fontSize: 12, color: '#7F1D1D', marginTop: 2, lineHeight: 1.45 }}>
+                    {selectedScenario.humanProblem}
                   </div>
                 </div>
               </div>
 
-              {/* Step 2 */}
+              {/* Step 2: Groq LPU AI Diagnosis */}
               <div style={{
+                background: '#F0F9FF',
+                border: '1px solid #BAE6FD',
+                borderRadius: 8,
+                padding: '14px 16px',
                 display: 'flex',
-                gap: 12,
-                opacity: simStep >= 2 ? 1 : 0.3,
-                transition: 'opacity 0.2s',
+                flexDirection: 'column',
+                gap: 8,
               }}>
-                <div style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  background: simStep >= 2 ? '#0284C7' : '#334155',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  2
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#0369A1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Cpu size={14} />
+                    AI Diagnostic Engine (<span style={{ color: '#0284C7' }}>240ms latency</span>)
+                  </span>
+                  <span style={{ fontSize: 11, background: '#E0F2FE', color: '#0369A1', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                    Confidence: {Math.round(selectedScenario.confidence * 100)}%
+                  </span>
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
-                    Groq LPU AI Root Cause Diagnosis (280ms)
-                  </div>
-                  <div style={{ fontSize: 12, color: '#38BDF8', marginTop: 2, fontWeight: 600 }}>
-                    Classified as <strong>{selectedScenario.rootCause}</strong> (Confidence: {Math.round(selectedScenario.confidence * 100)}%)
-                  </div>
-                  <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 3, fontStyle: 'italic' }}>
-                    "{selectedScenario.reasoning}"
-                  </div>
+
+                <div style={{ fontSize: 13, color: '#0C4A6E', fontWeight: 600 }}>
+                  Root Cause: <strong style={{ color: '#0284C7' }}>{selectedScenario.rootCause}</strong>
+                </div>
+
+                <div style={{ fontSize: 12, color: '#475569', fontStyle: 'italic', lineHeight: 1.45 }}>
+                  "{selectedScenario.reasoning}"
                 </div>
               </div>
 
-              {/* Step 3 */}
-              <div style={{
-                display: 'flex',
-                gap: 12,
-                opacity: simStep >= 3 ? 1 : 0.3,
-                transition: 'opacity 0.2s',
-              }}>
-                <div style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  background: simStep >= 3 ? '#0284C7' : '#334155',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  3
+              {/* Step 3: Realistic WhatsApp / SMS Chat Preview Bubble */}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MessageSquare size={14} color="#059669" />
+                  What the Buyer Receives (WhatsApp / SMS Delivery)
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
-                    Personalized Hinglish Copywriting
+
+                <div style={{
+                  background: '#ECE5DD',
+                  borderRadius: 10,
+                  padding: '14px',
+                  border: '1px solid #D5CDAF',
+                }}>
+                  {/* WhatsApp Message Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 11, color: '#4A5568', fontWeight: 600 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#25D366' }} />
+                    {selectedScenario.merchantName} (Verified via Razorpay)
                   </div>
+
+                  {/* Message Bubble */}
                   <div style={{
-                    fontSize: 12,
-                    color: '#E2E8F0',
-                    background: '#1E293B',
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    marginTop: 4,
-                    borderLeft: '3px solid #38BDF8',
+                    background: '#FFFFFF',
+                    borderRadius: '0 8px 8px 8px',
+                    padding: '12px 14px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    maxWidth: '92%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
                   }}>
-                    {selectedScenario.hinglishCopy}
+                    <p style={{ fontSize: 12.5, color: '#1A202C', margin: 0, lineHeight: 1.5 }}>
+                      {selectedScenario.hinglishCopy}
+                    </p>
+
+                    {selectedScenario.rootCause !== 'FRAUD_FLAG' ? (
+                      <div style={{
+                        background: '#0284C7',
+                        color: '#FFFFFF',
+                        padding: '10px 14px',
+                        borderRadius: 6,
+                        textAlign: 'center',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(2,132,199,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}>
+                        <CreditCard size={14} />
+                        Pay ₹{selectedScenario.amount.toLocaleString('en-IN')} via UPI / Card
+                      </div>
+                    ) : (
+                      <div style={{
+                        background: '#FEE2E2',
+                        color: '#991B1B',
+                        padding: '8px 12px',
+                        borderRadius: 6,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textAlign: 'center',
+                      }}>
+                        🛑 Customer link suppressed · Quarantined for compliance review
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: 10, color: '#A0AEC0', textAlign: 'right', marginTop: -4 }}>
+                      10:42 AM · Delivered
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Step 4 */}
+              {/* Step 4: Outcome */}
               <div style={{
+                background: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                borderRadius: 8,
+                padding: '12px 16px',
                 display: 'flex',
-                gap: 12,
-                opacity: simStep >= 4 ? 1 : 0.3,
-                transition: 'opacity 0.2s',
+                alignItems: 'center',
+                gap: 10,
               }}>
-                <div style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  background: simStep >= 4 ? '#0284C7' : '#334155',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  4
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
-                    Razorpay API Bounded Execution
-                  </div>
-                  <div style={{ fontSize: 12, color: '#34D399', marginTop: 2, fontWeight: 600 }}>
-                    Action: {selectedScenario.actionDisplay}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2, fontFamily: 'monospace' }}>
-                    Reference ID: {selectedScenario.linkId}
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 5 */}
-              <div style={{
-                display: 'flex',
-                gap: 12,
-                opacity: simStep >= 5 ? 1 : 0.3,
-                transition: 'opacity 0.2s',
-              }}>
-                <div style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  background: simStep >= 5 ? '#10B981' : '#334155',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}>
-                  5
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
-                    Loop Closure & Immutable Audit Ledger
-                  </div>
-                  <div style={{ fontSize: 12, color: selectedScenario.outcomeColor, marginTop: 2, fontWeight: 700 }}>
-                    {selectedScenario.outcome}
-                  </div>
+                <CheckCircle2 size={18} color="#059669" />
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#065F46' }}>
+                  {selectedScenario.outcome}
                 </div>
               </div>
             </div>
 
-            {/* Right: Policy & Compliance Card */}
+            {/* Right: The Enterprise Control Desk (Why Merchants Trust It) */}
             <div style={{
-              background: '#132337',
-              borderRadius: 8,
-              border: '1px solid #1E3A8A',
-              padding: '20px',
+              background: '#0C2340',
+              color: '#FFFFFF',
+              borderRadius: 12,
+              padding: '24px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
+              boxShadow: '0 4px 14px rgba(12,35,64,0.15)',
             }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#38BDF8', marginBottom: 12 }}>
-                  <ShieldCheck size={16} />
-                  GOVERNANCE & POLICY GATES
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#38BDF8', letterSpacing: '0.05em', marginBottom: 8 }}>
+                  <ShieldCheck size={18} />
+                  ENTERPRISE COMPLIANCE & SAFETY DESK
                 </div>
 
-                <div style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.6, marginBottom: 16 }}>
-                  {selectedScenario.complianceNote}
-                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#FFFFFF', marginBottom: 14 }}>
+                  Deterministic Safety Guardrails
+                </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 11, color: '#94A3B8' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1E293B', paddingBottom: 6 }}>
-                    <span>Max Retries Policy:</span>
-                    <strong style={{ color: '#F1F5F9' }}>Strict 3 Cap</strong>
+                <p style={{ fontSize: 12.5, color: '#94A3B8', lineHeight: 1.55, marginBottom: 20 }}>
+                  Why CFOs and Risk teams trust PayBack AI: every automated decision is bounded by hard rules that prevent customer spam, loop traps, and regulatory penalties.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0, marginTop: 2 }}>
+                      ✓
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F1F5F9' }}>Strict Max 3-Retry Policy</div>
+                      <div style={{ fontSize: 11.5, color: '#94A3B8' }}>Stops buyer annoyance and repeated bank NSF penalties.</div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1E293B', paddingBottom: 6 }}>
-                    <span>Consecutive Fail Halt:</span>
-                    <strong style={{ color: '#F1F5F9' }}>2 Failures</strong>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0, marginTop: 2 }}>
+                      ✓
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F1F5F9' }}>Bank Outage Circuit Breaker</div>
+                      <div style={{ fontSize: 11.5, color: '#94A3B8' }}>Automatically pauses retries if 2 consecutive bank errors occur.</div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1E293B', paddingBottom: 6 }}>
-                    <span>Fraud Auto-Retry:</span>
-                    <strong style={{ color: '#EF4444' }}>BLOCKED (0 Retries)</strong>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#EF4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0, marginTop: 2 }}>
+                      !
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F1F5F9' }}>Zero Fraud Auto-Retries</div>
+                      <div style={{ fontSize: 11.5, color: '#94A3B8' }}>Suspicious transactions are routed straight to human risk review.</div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Audit Trail:</span>
-                    <strong style={{ color: '#10B981' }}>Cryptographically Signed</strong>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0, marginTop: 2 }}>
+                      ✓
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F1F5F9' }}>Cryptographic Audit Trail</div>
+                      <div style={{ fontSize: 11.5, color: '#94A3B8' }}>Every message, link ID, and rupee is immutably logged for reconciliation.</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <button
-                onClick={() => onGoToDashboard('audit')}
-                style={{
-                  marginTop: 20,
-                  width: '100%',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  padding: '10px',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
-              >
-                Inspect Live Audit Log
-                <ChevronRight size={14} />
-              </button>
+              <div style={{ marginTop: 24, borderTop: '1px solid #1E3A8A', paddingTop: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#94A3B8', marginBottom: 12 }}>
+                  <span>Audit Identifier:</span>
+                  <span style={{ fontFamily: 'monospace', color: '#38BDF8' }}>{selectedScenario.linkId}</span>
+                </div>
+
+                <button
+                  onClick={() => onGoToDashboard('audit')}
+                  style={{
+                    width: '100%',
+                    background: '#0284C7',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    padding: '11px',
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  Inspect Live Audit Trail Entry
+                  <ArrowRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
