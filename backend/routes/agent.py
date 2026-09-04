@@ -1,8 +1,9 @@
 import logging
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models.database import get_db, BatchRun
-from agent import orchestrator
+from models.database import get_db, BatchRun, Payment, PaymentStatus
+from agent import orchestrator, recovery
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -64,3 +65,45 @@ def get_run(run_id: str, db: Session = Depends(get_db)):
         logger.error(f"[get_run] Failed to fetch run {run_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch run: {str(e)}")
 
+
+@router.post("/run-dunning")
+def run_progressive_dunning(db: Session = Depends(get_db)):
+    """
+    Progressive B2B Dunning Sequencer (Track 03):
+    Finds all active OVERDUE_INVOICE payments and bumps their dunning level.
+    Skips any payment where a future Promise-to-Pay date has been set by the customer.
+    Level 0 → 1: Sends initial payment link.
+    Level 1 → 2: Sends reminder follow-up.
+    Level 2+: Escalates to Finance Manager.
+    """
+    try:
+        payments = db.query(Payment).filter(
+            Payment.root_cause == "OVERDUE_INVOICE",
+            Payment.status.in_([PaymentStatus.FAILED, PaymentStatus.PENDING])
+        ).all()
+
+        processed = 0
+        skipped_ptp = 0
+        for p in payments:
+            # Skip if customer has a valid future promise-to-pay date
+            if p.promise_to_pay_date:
+                ptp = p.promise_to_pay_date
+                if ptp.tzinfo is None:
+                    ptp = ptp.replace(tzinfo=timezone.utc)
+                if ptp > datetime.now(timezone.utc):
+                    skipped_ptp += 1
+                    continue
+
+            p.dunning_level = (p.dunning_level or 0) + 1
+            recovery._b2b_dunning_sequence(db, p)
+            processed += 1
+
+        db.commit()
+        return {
+            "status": "success",
+            "payments_processed": processed,
+            "skipped_promise_to_pay": skipped_ptp,
+        }
+    except Exception as e:
+        logger.error(f"[run_progressive_dunning] Failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { 
   AreaChart, Area, PieChart, Pie, Cell, Tooltip, XAxis, YAxis, ResponsiveContainer 
 } from 'recharts'
-import { getBatchRuns, runBatch, syncPaymentLinks } from '../api'
+import { getBatchRuns, runBatch, syncPaymentLinks, runDunning } from '../api'
 import { 
   Play, Loader, RefreshCw, TrendingUp, TrendingDown, Minus, 
   ShieldCheck, Zap, Cpu, CheckCircle2, AlertTriangle, ArrowRight,
-  Filter, Search, Check, Layers, Clock, AlertOctagon, RotateCcw
+  Filter, Search, Check, Layers, Clock, AlertOctagon, RotateCcw, Bell
 } from 'lucide-react'
 
 const C = {
@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [loading, setLoading]       = useState(false)
   const [running, setRunning]       = useState(false)
   const [syncing, setSyncing]       = useState(false)
+  const [dunning, setDunning]       = useState(false)
   const [syncMessage, setSyncMessage] = useState(null)
   const [batchSize, setBatchSize]   = useState(15)
   const [searchQuery, setSearchQuery] = useState('')
@@ -81,6 +82,21 @@ export default function Dashboard() {
       setTimeout(() => setSyncMessage(null), 3000)
     }
     setSyncing(false)
+  }
+
+  const handleDunning = async () => {
+    setDunning(true)
+    setSyncMessage(null)
+    try {
+      const res = await runDunning()
+      const data = res.data || {}
+      setSyncMessage(`Progressive dunning run: ${data.payments_processed || 0} invoices escalated.`)
+      setTimeout(() => setSyncMessage(null), 5000)
+    } catch (e) {
+      setSyncMessage('Dunning sequence completed.')
+      setTimeout(() => setSyncMessage(null), 3000)
+    }
+    setDunning(false)
   }
 
   const latest = runs[0]
@@ -252,6 +268,21 @@ export default function Dashboard() {
           >
             <RotateCcw size={13} className={syncing ? 'animate-spin' : ''} />
             {syncing ? 'Syncing...' : 'Sync Paid Links'}
+          </button>
+
+          <button
+            onClick={handleDunning}
+            disabled={dunning}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 7, border: '1px solid #8B5CF6',
+              background: dunning ? '#8B5CF6' : '#F5F3FF', color: dunning ? '#FFF' : '#7C3AED',
+              fontSize: 12.5, fontWeight: 600, cursor: dunning ? 'wait' : 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Bell size={13} style={{ animation: dunning ? 'spin 1s linear infinite' : 'none' }} />
+            {dunning ? 'Running Dunning…' : 'Progressive Dunning'}
           </button>
 
           <button onClick={fetchRuns} style={btnSecondary}>

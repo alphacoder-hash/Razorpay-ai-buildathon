@@ -20,6 +20,7 @@ class PaymentStatus(str, enum.Enum):
     ESCALATED = "ESCALATED"
     PENDING = "PENDING"
     ABANDONED = "ABANDONED"
+    PROMISED = "PROMISED"
 
 
 class RootCause(str, enum.Enum):
@@ -53,6 +54,8 @@ class Payment(Base):
     recovery_action = Column(String, nullable=True)
     error_code = Column(String, nullable=True)
     error_description = Column(Text, nullable=True)
+    promise_to_pay_date = Column(DateTime, nullable=True)
+    dunning_level = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

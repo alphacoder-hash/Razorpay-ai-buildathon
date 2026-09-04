@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from 'react'
-import { getPayments, recoverPayment, syncPaymentLinks } from '../api'
+import { getPayments, recoverPayment, syncPaymentLinks, setPromiseToPay } from '../api'
 import AuditModal from './AuditModal'
 import {
   Search, RefreshCw, ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Filter, Eye, RotateCcw, Download, ArrowUpDown, CreditCard,
   ShieldCheck, AlertTriangle, Clock, XCircle, Ban, TrendingUp,
-  IndianRupee, Zap, CheckCircle2, ExternalLink, Copy, MoreHorizontal
+  IndianRupee, Zap, CheckCircle2, ExternalLink, Copy, MoreHorizontal, Calendar
 } from 'lucide-react'
 
 /* ── Design Tokens ───────────────────────────── */
@@ -40,6 +40,7 @@ const STATUS_CONFIG = {
   ESCALATED: { color: '#D97706', bg: '#FEF3C7', border: '#FDE68A', icon: AlertTriangle, label: 'Escalated' },
   PENDING: { color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE', icon: Clock, label: 'Pending' },
   ABANDONED: { color: '#64748B', bg: '#F1F5F9', border: '#CBD5E1', icon: Ban, label: 'Abandoned' },
+  PROMISED: { color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE', icon: Calendar, label: 'Promised' },
 }
 
 const CAUSE_CONFIG = {
@@ -68,6 +69,8 @@ export default function PaymentsTable() {
   const [loading, setLoading] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState(null)
   const [recovering, setRecovering] = useState(null)
+  const [promising, setPromising] = useState(null)
+  const [promiseDate, setPromiseDate] = useState('')
   const [expandedReason, setExpandedReason] = useState(null)
   const [syncing, setSyncing] = useState(false)
   const [syncNotice, setSyncNotice] = useState(null)
@@ -77,7 +80,7 @@ export default function PaymentsTable() {
   const [pageSize, setPageSize] = useState(25)
   const [copiedId, setCopiedId] = useState(null)
 
-  const FILTERS = ['ALL', 'FAILED', 'RECOVERED', 'ESCALATED', 'PENDING', 'ABANDONED']
+  const FILTERS = ['ALL', 'FAILED', 'RECOVERED', 'ESCALATED', 'PENDING', 'PROMISED']
 
   const fetchPayments = async () => {
     setLoading(true)
@@ -98,6 +101,15 @@ export default function PaymentsTable() {
     setRecovering(null)
   }
 
+  const handlePromiseToPay = async (id) => {
+    if (!promiseDate) return
+    try {
+      await setPromiseToPay(id, new Date(promiseDate).toISOString())
+      setPromising(null)
+      setPromiseDate('')
+      await fetchPayments()
+    } catch (e) { console.error(e) }
+  }
   const handleSyncLinks = async () => {
     setSyncing(true)
     setSyncNotice(null)
@@ -609,6 +621,49 @@ export default function PaymentsTable() {
                             <RotateCcw size={10} style={{ animation: recovering === p.id ? 'spin 1s linear infinite' : 'none' }} />
                             {recovering === p.id ? 'Running…' : 'Recover'}
                           </button>
+                        )}
+                        {p.status === 'PENDING' && p.root_cause === 'OVERDUE_INVOICE' && promising !== p.id && (
+                          <button
+                            onClick={() => setPromising(p.id)}
+                            style={{
+                              fontSize: 11, fontWeight: 600, color: C.purple,
+                              background: C.purpleLight, border: `1px solid ${C.purple}25`,
+                              borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+                              transition: 'all 0.15s ease', fontFamily: "'DM Sans', sans-serif",
+                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                            }}
+                          >
+                            <Calendar size={10} />
+                            Promise to Pay
+                          </button>
+                        )}
+                        {promising === p.id && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <input
+                              type="date"
+                              value={promiseDate}
+                              onChange={e => setPromiseDate(e.target.value)}
+                              style={{ padding: '2px 6px', fontSize: 11, borderRadius: 4, border: `1px solid ${C.border}` }}
+                            />
+                            <button
+                              onClick={() => handlePromiseToPay(p.id)}
+                              style={{
+                                fontSize: 11, fontWeight: 600, color: '#fff',
+                                background: C.purple, border: 'none',
+                                borderRadius: 4, padding: '4px 8px', cursor: 'pointer',
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => { setPromising(null); setPromiseDate('') }}
+                              style={{
+                                fontSize: 11, color: C.textSub, background: 'none', border: 'none', cursor: 'pointer', padding: 2
+                              }}
+                            >
+                              <XCircle size={12} />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </td>

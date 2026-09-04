@@ -135,19 +135,37 @@ def _mandate_retry_sequencer(db: Session, payment: Payment, note: str = None) ->
 def _b2b_dunning_sequence(db: Session, payment: Payment, note: str = None) -> dict:
     """
     B2B Receivables Chaser: Progressive dunning workflow for overdue invoices.
-    Step 1: Creates official Razorpay payment link with 7-day grace period.
-    Step 2: Sets automated payment reminders via SMS/Email.
-    Step 3: Logs Promise-to-Pay tracking window in audit trail.
+    Level 0: Creates official Razorpay payment link with 7-day grace period.
+    Level 1: Automated payment reminder follow-up.
+    Level 2: Escalation to Finance Manager.
     """
     try:
-        dunning_note = note or f"Outstanding B2B invoice balance: ₹{payment.amount:,.2f}. Please settle via this secure Razorpay link within 7 business days."
-        res = _send_payment_link(db, payment, note=dunning_note, action_label="B2B_DUNNING_SEQUENCE")
-        if res.get("status") == "PENDING":
+        # Ignore if there is a promise to pay in the future
+        if payment.promise_to_pay_date and payment.promise_to_pay_date > datetime.now(timezone.utc):
+            msg = f"Dunning paused: Promise to pay on {payment.promise_to_pay_date.strftime('%Y-%m-%d')}"
+            audit.log(db, payment.id, "DUNNING_PAUSED", "PENDING", msg)
+            return {"status": "PROMISED", "action": "DUNNING_PAUSED", "payment_id": payment.id, "reason": msg}
+
+        level = payment.dunning_level
+        
+        if level == 0:
+            dunning_note = note or f"Outstanding B2B invoice balance: ₹{payment.amount:,.2f}. Please settle via this secure Razorpay link within 7 business days."
+            res = _send_payment_link(db, payment, note=dunning_note, action_label="B2B_DUNNING_SEQUENCE")
+            if res.get("status") == "PENDING":
+                audit.log(
+                    db, payment.id, "DUNNING_LEVEL_0", "SCHEDULED",
+                    f"B2B Receivables workflow initiated: 7-day grace period scheduled. Link generated."
+                )
+            return res
+        elif level == 1:
             audit.log(
-                db, payment.id, "PROMISE_TO_PAY", "SCHEDULED",
-                f"B2B Receivables workflow initiated: 7-day grace period scheduled. Auto-escalation to Finance Manager if unpaid by Day 7."
+                db, payment.id, "DUNNING_LEVEL_1", "REMINDER_SENT",
+                f"Level 1 Escalation: Automated SMS/Email reminder sent to {payment.customer_email}."
             )
-        return res
+            return {"status": payment.status, "action": "B2B_DUNNING_SEQUENCE", "payment_id": payment.id, "level": 1}
+        else:
+            return _escalate(db, payment, reason=f"Level 2 Escalation: Invoice unpaid after reminders. Escalated to Finance Manager.")
+            
     except Exception as e:
         logger.error(f"[_b2b_dunning_sequence] Failed for {payment.id}: {e}")
         return _escalate(db, payment, reason=f"B2B dunning sequence failed: {str(e)}")

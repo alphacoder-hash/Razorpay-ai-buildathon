@@ -17,6 +17,8 @@ export const getDetectorData = (hoursBack = 24) => api.get(`/payments/detect?hou
 export const syncPaymentLinks = ()          => api.post('/payments/sync-links')
 export const ingestLivePayment = (data)     => api.post('/payments/ingest-live', data)
 export const getPaymentDetails = (id)       => api.get(`/payments/${id}`)
+export const setPromiseToPay   = (id, date) => api.post(`/payments/${id}/promise`, { promise_date: date })
+export const triggerVoiceRecovery = (id)    => api.post(`/payments/${id}/voice-recovery`)
+export const runDunning        = ()         => api.post('/agent/run-dunning')
 
 export default api
-

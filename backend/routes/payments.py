@@ -160,3 +160,54 @@ def get_payment_details(payment_id: str, db: Session = Depends(get_db)):
     }
 
 
+from datetime import datetime, timezone
+from agent import audit
+
+@router.post("/{payment_id}/promise")
+def promise_to_pay(payment_id: str, payload: dict, db: Session = Depends(get_db)):
+    """Sets a promise-to-pay date and pauses dunning."""
+    try:
+        payment = db.query(Payment).filter(Payment.id == payment_id).first()
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+        
+        promise_date_str = payload.get("promise_date")
+        if not promise_date_str:
+            raise HTTPException(status_code=400, detail="promise_date is required")
+            
+        promise_date = datetime.fromisoformat(promise_date_str.replace("Z", "+00:00"))
+        payment.promise_to_pay_date = promise_date
+        payment.status = PaymentStatus.PROMISED
+        db.commit()
+        
+        audit.log(
+            db, payment.id, "PROMISE_TO_PAY", "SCHEDULED",
+            f"Customer promised to pay on {promise_date.strftime('%Y-%m-%d')}. Dunning paused."
+        )
+        return {"status": "success", "promise_date": promise_date.isoformat()}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use ISO8601.")
+    except Exception as e:
+        logger.error(f"[promise_to_pay] Failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{payment_id}/voice-recovery")
+def trigger_voice_recovery(payment_id: str, db: Session = Depends(get_db)):
+    """Simulates initiating a Hinglish Voice Recovery IVR call."""
+    try:
+        payment = db.query(Payment).filter(Payment.id == payment_id).first()
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+            
+        msg = payment.recovery_message or "Namaste, this is an automated update regarding your recent pending payment. Please use the secure link sent to your phone to complete the transaction."
+        
+        audit.log(
+            db, payment.id, "VOICE_RECOVERY", "INITIATED",
+            f"Simulated outbound Twilio IVR call to {payment.customer_phone}. TwiML Speech Payload: '{msg}'"
+        )
+        
+        return {"status": "success", "message": "Voice recovery call simulated"}
+    except Exception as e:
+        logger.error(f"[trigger_voice_recovery] Failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

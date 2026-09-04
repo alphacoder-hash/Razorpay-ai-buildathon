@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { getAuditTrail, getPaymentDetails } from '../api'
+import { getAuditTrail, getPaymentDetails, triggerVoiceRecovery } from '../api'
 import {
   X, Bot, CheckCircle2, XCircle, AlertTriangle, Clock, 
   PhoneCall, Volume2, Play, Square, Brain, MessageSquare,
   CreditCard, Shield, Link2, Copy, ExternalLink, Zap,
-  Activity, Eye, RefreshCw, ChevronRight
+  Activity, Eye, RefreshCw, ChevronRight, PhoneOutgoing
 } from 'lucide-react'
 
 /* ── Design Tokens ───────────────────────────── */
@@ -55,17 +55,38 @@ export default function AuditModal({ paymentId, onClose }) {
   const [payment, setPayment] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isTriggering, setIsTriggering] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
 
-  useEffect(() => {
-    Promise.all([
-      getAuditTrail(paymentId).catch(() => ({ data: [] })),
-      getPaymentDetails(paymentId).catch(() => ({ data: null })),
-    ]).then(([trailRes, payRes]) => {
-      setLogs(trailRes.data || [])
-      setPayment(payRes.data || null)
-    }).finally(() => setLoading(false))
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [resLog, resPay] = await Promise.all([
+        getAuditTrail(paymentId).catch(() => ({ data: [] })),
+        getPaymentDetails(paymentId).catch(() => ({ data: null }))
+      ])
+      setLogs(resLog.data || [])
+      setPayment(resPay.data)
+    } catch (e) {
+      console.error(e)
+    }
+    setLoading(false)
+  }
 
+  const handleTriggerVoice = async () => {
+    if (isTriggering) return
+    setIsTriggering(true)
+    try {
+      await triggerVoiceRecovery(paymentId)
+      await fetchData()
+    } catch (e) {
+      console.error(e)
+    }
+    setIsTriggering(false)
+  }
+
+  useEffect(() => {
+    fetchData()
     return () => {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel()
     }
@@ -230,17 +251,29 @@ export default function AuditModal({ paymentId, onClose }) {
                 "{payment.recovery_message || 'Aapka payment pending hai, direct link se complete karein.'}"
               </p>
             </div>
-            <button onClick={handleVoicePlay} style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: isPlaying ? `linear-gradient(135deg, #DC2626, #EF4444)` : `linear-gradient(135deg, ${C.blueMid}, ${C.blue})`,
-              color: '#FFF', border: 'none', padding: '8px 14px', borderRadius: 8,
-              fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-              boxShadow: isPlaying ? '0 2px 8px rgba(220,38,38,0.25)' : '0 2px 8px rgba(37,99,235,0.25)',
-              transition: 'all 0.2s ease',
-            }}>
-              {isPlaying ? <Square size={11} fill="white" /> : <Volume2 size={12} />}
-              {isPlaying ? 'Stop' : 'Listen Call'}
-            </button>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <button onClick={handleTriggerVoice} disabled={isTriggering} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: '#FFF', color: '#047857',
+                border: '1px solid #059669', padding: '8px 14px', borderRadius: 8,
+                fontSize: 11, fontWeight: 700, cursor: isTriggering ? 'not-allowed' : 'pointer',
+                opacity: isTriggering ? 0.6 : 1, transition: 'all 0.2s ease',
+              }}>
+                <PhoneOutgoing size={12} />
+                {isTriggering ? 'Calling…' : 'Initiate Call'}
+              </button>
+              <button onClick={handleVoicePlay} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: isPlaying ? `linear-gradient(135deg, #DC2626, #EF4444)` : `linear-gradient(135deg, ${C.blueMid}, ${C.blue})`,
+                color: '#FFF', border: 'none', padding: '8px 14px', borderRadius: 8,
+                fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                boxShadow: isPlaying ? '0 2px 8px rgba(220,38,38,0.25)' : '0 2px 8px rgba(37,99,235,0.25)',
+                transition: 'all 0.2s ease',
+              }}>
+                {isPlaying ? <Square size={11} fill="white" /> : <Volume2 size={12} />}
+                {isPlaying ? 'Stop' : 'Listen Script'}
+              </button>
+            </div>
           </div>
         )}
 
