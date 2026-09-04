@@ -4,7 +4,7 @@
 ### Razorpay AI Buildathon 2026 · Track 03: AI Revenue Recovery
 **Built by Vaibhav Pandey**
 
-[![Frontend Live](https://img.shields.io/badge/Frontend%20Live-Vercel-black?logo=vercel&style=for-the-badge)](https://razorpay-ai-buildathon-ten.vercel.app/)
+[![Frontend Live](https://img.shields.io/badge/Frontend%20Live-Vercel-black?logo=vercel&style=for-the-badge)](https://frontend-xi-five-r21j34r112.vercel.app/)
 [![Backend Live](https://img.shields.io/badge/Backend%20Live-Railway-purple?logo=railway&style=for-the-badge)](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
 <br/>
@@ -23,7 +23,7 @@
 </p>
 
 > 🌐 **Live Demo & Cloud Deployments**
-> - **Frontend (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
+> - **Frontend (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://frontend-xi-five-r21j34r112.vercel.app/)
 > - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app)
 > - **Backend Health Check**: [`https://razorpay-ai-buildathon-production-788d.up.railway.app/health`](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
@@ -279,7 +279,7 @@ tests/test_webhooks.py::test_webhook_payment_link_paid_reconciles_status PASSED 
 - An xAI Grok API Key ([x.ai](https://x.ai/))
 
 ### 0. Live Cloud Deployments (Instant Access)
-- **Frontend Dashboard (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
+- **Frontend Dashboard (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://frontend-xi-five-r21j34r112.vercel.app/)
 - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app)
 - **Health Check Endpoint**: [https://razorpay-ai-buildathon-production-788d.up.railway.app/health](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
@@ -411,7 +411,7 @@ PayBack AI includes a **professional, enterprise-grade dashboard** built with Re
 ### Deployment
 | Service | Platform | URL |
 |---|---|---|
-| **Frontend** | Vercel (auto-deploy from GitHub) | [razorpay-ai-buildathon-ten.vercel.app](https://razorpay-ai-buildathon-ten.vercel.app/) |
+| **Frontend** | Vercel (auto-deploy from GitHub) | [razorpay-ai-buildathon-ten.vercel.app](https://frontend-xi-five-r21j34r112.vercel.app/) |
 | **Backend** | Railway (auto-deploy from GitHub) | [razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app/) |
 | **Database** | SQLite (local) / PostgreSQL (Railway) | Auto-configured via `DATABASE_URL` |
 
