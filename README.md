@@ -1,7 +1,7 @@
 <div align="center">
 
 # ⚡ PayBack AI — Autonomous Revenue Recovery Agent
-### Razorpay AI Buildathon 2025 · Track 03: AI Revenue Recovery
+### Razorpay AI Buildathon 2026 · Track 03: AI Revenue Recovery
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.2-009688.svg)](https://fastapi.tiangolo.com/)
@@ -33,7 +33,6 @@
 - [8.0 Verification & Test Suite (30/30 Tests)](#80-verification--test-suite-3030-tests)
 - [9.0 Quick Start Guide](#90-quick-start-guide)
 - [10.0 Real-World Merchant Testing with Razorpay](#100-real-world-merchant-testing-with-razorpay)
-- [11.0 Production Hardening & Roadmap](#110-production-hardening--roadmap)
 
 ---
 
@@ -313,26 +312,3 @@ To test PayBack AI against real Razorpay test-mode transactions:
    - Once you pay the newly generated recovery link in Razorpay test mode, click **Sync Paid Links** on the Payments page.
    - The status updates from `PENDING` → `RECOVERED`, showing verified money recovered!
 
----
-
-## 11.0 Production Hardening & Roadmap
-
-- [x] Autonomous Loop: Detect → Classify → Recover → Audit
-- [x] Grok 3 Mini Root Cause Diagnosis
-- [x] 8 Enterprise Failure Modes (including B2B Invoices & Cart Abandonment)
-- [x] Dynamic Bilingual Hinglish / English Copywriting
-- [x] Circuit-Breaker Stopping Rules & Fraud Compliance Gate
-- [x] Honest Exception List with Value-at-Risk Analytics
-- [x] Real-time Webhook Receiver (`payment.failed`, `payment_link.paid`)
-- [x] 30 Automated Unit & Integration Tests
-- [ ] **WhatsApp Interactive Commerce Recovery**: Direct WhatsApp interactive template integration via Razorpay Optimizer.
-- [ ] **AI Voice Agent (Hinglish)**: Automated phone call recovery for high-value B2B overdue receivables via Twilio/ElevenLabs.
-- [ ] **NPCI Unified Payment Agent (UAP)**: Autonomous agent-to-agent protocol integration for autonomous reconciliation.
-
----
-
-## 👥 Contributors & Acknowledgements
-- **Author**: Aryan ([@alphacoder-hash](https://github.com/alphacoder-hash))
-- **Event**: Razorpay AI Buildathon 2025
-- **Track**: Track 03 — AI Revenue Recovery
-- **Built With**: FastAPI, React, xAI Grok 3 Mini, Razorpay Python SDK
