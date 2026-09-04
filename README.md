@@ -3,6 +3,11 @@
 # ⚡ PayBack AI — Autonomous Revenue Recovery Agent
 ### Razorpay AI Buildathon 2026 · Track 03: AI Revenue Recovery
 
+[![Frontend Live](https://img.shields.io/badge/Frontend%20Live-Vercel-black?logo=vercel&style=for-the-badge)](https://razorpay-ai-buildathon-ten.vercel.app/)
+[![Backend Live](https://img.shields.io/badge/Backend%20Live-Railway-purple?logo=railway&style=for-the-badge)](https://razorpay-ai-buildathon-production.up.railway.app/health)
+
+<br/>
+
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.2-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://reactjs.org/)
@@ -15,6 +20,11 @@
   <b>Find revenue that’s slipping away and win it back autonomously.</b><br>
   An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with ultra-fast Groq LPU AI inference, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
 </p>
+
+> 🌐 **Live Demo & Cloud Deployments**
+> - **Frontend (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
+> - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app)
+> - **Backend Health Check**: [`https://razorpay-ai-buildathon-production.up.railway.app/health`](https://razorpay-ai-buildathon-production.up.railway.app/health)
 
 [Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#-system-architecture) · [Decision Matrix](#-agent-policy--decision-matrix) · [API Reference](#-api-specification) · [Quick Start](#-quick-start-guide)
 
@@ -258,7 +268,12 @@ tests/test_webhooks.py::test_webhook_payment_link_paid_reconciles_status PASSED 
 - A Razorpay Test Mode account ([razorpay.com](https://razorpay.com))
 - An xAI Grok API Key ([x.ai](https://x.ai/))
 
-### 1. Clone & Configure Environment
+### 0. Live Cloud Deployments (Instant Access)
+- **Frontend Dashboard (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://razorpay-ai-buildathon-ten.vercel.app/)
+- **Backend API (Railway)**: [https://razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app)
+- **Health Check Endpoint**: [https://razorpay-ai-buildathon-production.up.railway.app/health](https://razorpay-ai-buildathon-production.up.railway.app/health)
+
+### 1. Clone & Configure Environment Locally
 ```bash
 git clone https://github.com/alphacoder-hash/Razorpay-ai-buildathon.git
 cd Razorpay-ai-buildathon
