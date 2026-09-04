@@ -7,7 +7,7 @@ import {
   CreditCard, Clock, RotateCcw, AlertOctagon, Terminal,
   MessageSquare, Smartphone, User, ShoppingBag, ShieldAlert
 } from 'lucide-react'
-import { getPayments, getBatchRuns } from '../api'
+import { getPayments, getBatchRuns, TEST_CHECKOUT_URL } from '../api'
 
 const SIMULATOR_SCENARIOS = [
   {
@@ -443,7 +443,7 @@ export default function HomePage({ onGoToDashboard }) {
             </button>
 
             <a
-              href="http://localhost:8000/test-checkout"
+              href={TEST_CHECKOUT_URL}
               target="_blank"
               rel="noreferrer"
               style={{
@@ -1462,7 +1462,7 @@ export default function HomePage({ onGoToDashboard }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <a
-              href="http://localhost:8000/test-checkout"
+              href={TEST_CHECKOUT_URL}
               target="_blank"
               rel="noreferrer"
               style={{ fontSize: 12, color: '#16A34A', textDecoration: 'none', fontWeight: 600 }}

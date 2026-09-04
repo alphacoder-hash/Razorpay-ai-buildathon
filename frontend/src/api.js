@@ -6,6 +6,10 @@ const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL
 
 const api = axios.create({ baseURL })
 
+export const TEST_CHECKOUT_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/test-checkout`
+  : 'http://localhost:8000/test-checkout'
+
 export const runBatch        = (count = 60) => api.post(`/agent/run-batch?count=${count}`)
 export const getBatchRuns    = ()           => api.get('/agent/runs')
 export const getPayments     = (status)    => api.get('/payments/', { params: status ? { status } : {} })

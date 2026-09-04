@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getDetectorData, ingestLivePayment } from '../api'
+import { getDetectorData, ingestLivePayment, TEST_CHECKOUT_URL } from '../api'
 import { Radar, RefreshCw, AlertTriangle, Clock, ShieldCheck, Zap, CheckCircle2 } from 'lucide-react'
 
 export default function Detector() {
@@ -214,7 +214,7 @@ export default function Detector() {
                 Your Razorpay account is connected, but no failed payments have occurred yet in the last {data.hours_back}h.
               </div>
               <a
-                href="http://localhost:8000/test-checkout"
+                href={TEST_CHECKOUT_URL}
                 target="_blank"
                 rel="noreferrer"
                 style={{
