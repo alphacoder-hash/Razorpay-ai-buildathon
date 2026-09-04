@@ -23,7 +23,7 @@
 </p>
 
 > 🌐 **Live Demo & Cloud Deployments**
-> - **Frontend (Vercel)**: [https://razorpay-ai-buildathon-ten.vercel.app/](https://frontend-xi-five-r21j34r112.vercel.app/)
+> - **Frontend (Vercel)**: [https://frontend-xi-five-r21j34r112.vercel.app/](https://frontend-xi-five-r21j34r112.vercel.app/)
 > - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production-788d.up.railway.app](https://razorpay-ai-buildathon-production-788d.up.railway.app)
 > - **Backend Health Check**: [`https://razorpay-ai-buildathon-production-788d.up.railway.app/health`](https://razorpay-ai-buildathon-production-788d.up.railway.app/health)
 
