@@ -13,11 +13,11 @@
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://reactjs.org/)
 [![Groq LPU](https://img.shields.io/badge/LLM-Groq%20LPU%20%7C%20xAI-orange.svg)](https://groq.com/)
 [![Razorpay API](https://img.shields.io/badge/Payments-Razorpay%20v1-02042B.svg)](https://razorpay.com/)
-[![Tests Passing](https://img.shields.io/badge/Tests-30%2F30%20Passing-success.svg)](#-verification--test-suite)
+[![Tests Passing](https://img.shields.io/badge/Tests-30%2F30%20Passing-success.svg)](#80-verification--test-suite-3030-tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <p align="center">
-  <b>Find revenue that’s slipping away and win it back autonomously.</b><br>
+  <b>Find revenue that's slipping away and win it back autonomously.</b><br>
   An enterprise-grade, closed-loop agent that detects payment failures, checkout drop-offs, and B2B receivables at risk, diagnoses root causes with ultra-fast Groq LPU AI inference, crafts dynamic Hinglish recovery copy, executes bounded Razorpay recovery workflows, and guarantees compliance with stopping rules and an honest exception list.
 </p>
 
@@ -26,7 +26,7 @@
 > - **Backend API (Railway)**: [https://razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app)
 > - **Backend Health Check**: [`https://razorpay-ai-buildathon-production.up.railway.app/health`](https://razorpay-ai-buildathon-production.up.railway.app/health)
 
-[Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#-system-architecture) · [Decision Matrix](#-agent-policy--decision-matrix) · [API Reference](#-api-specification) · [Quick Start](#-quick-start-guide)
+[Repository](https://github.com/alphacoder-hash/Razorpay-ai-buildathon) · [Architecture](#30-system-architecture--data-flow) · [Decision Matrix](#40-agent-policy--decision-matrix) · [API Reference](#70-api-specification) · [Quick Start](#90-quick-start-guide)
 
 </div>
 
@@ -43,6 +43,9 @@
 - [8.0 Verification & Test Suite (30/30 Tests)](#80-verification--test-suite-3030-tests)
 - [9.0 Quick Start Guide](#90-quick-start-guide)
 - [10.0 Real-World Merchant Testing with Razorpay](#100-real-world-merchant-testing-with-razorpay)
+- [11.0 Dashboard & UI Features](#110-dashboard--ui-features)
+- [12.0 Tech Stack & Deployment](#120-tech-stack--deployment)
+- [13.0 Project Structure](#130-project-structure)
 
 ---
 
@@ -78,18 +81,18 @@ Currently, merchants either ignore failed payments (losing ₹Crores in top-line
 
 ## 2.0 Product Requirements & Scope (PRD)
 
-### 2.1 Track 03 Bar Alignment Matrix
+### 2.1 Track 03 Alignment Matrix
 
 | Track 03 Requirement | Specification in Brief | PayBack AI Implementation | Status |
 |---|---|---|:---:|
-| **Root Cause Diagnosis** | Diagnose payment degradation, cart drop-off, subscriptions, invoices | Grok 3 Mini classifies across 8 distinct failure modes (`BANK_DECLINE`, `NETWORK_TIMEOUT`, `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `FRAUD_FLAG`, `CHECKOUT_ABANDONED`, `SUBSCRIPTION_FAILED`, `OVERDUE_INVOICE`). | **Met** |
-| **Bounded Recovery Workflow** | Bounded, non-infinite intervention execution | Explicit policy bounds: max 3 retries, exponential delay backoffs (2h for banks, 24h for balance), 7-day invoice grace windows. | **Met** |
-| **Compliant Escalation** | Compliance boundaries, defense-only, anti-abuse | Strict **Zero-Auto-Retry policy** on `FRAUD_FLAG`. Flagged payments immediately escalate to human risk review with frozen recovery actions. | **Met** |
-| **Stopping Rules** | Graceful failure handling; prevent cascade loops | Hard circuit-breaker: **2 consecutive recovery failures halt the entire batch**. Remaining records are audited as `SKIPPED`. | **Met** |
-| **Measured Money Recovered** | Concrete, verifiable ₹ metrics across batches | Tracks actual ₹ recovered, recovery rates %, and link reconciliation without cherry-picking or masked numbers. | **Met** |
-| **Honest Exception List** | Surface what the agent could *not* resolve | Dedicated `/exceptions` module grouping unresolved amounts by root cause, displaying customer details and Grok reasoning. | **Met** |
-| **Audit Trail** | Explainable, bounded, gated audit trail | Immutable `AuditLog` table logging timestamp, actor (`AI_AGENT`, `RAZORPAY_WEBHOOK`), action, result, and detail for every payment. | **Met** |
-| **Live API Integration** | Real Razorpay test-mode API interaction | End-to-end integration with Razorpay Python SDK: `GET /v1/payments`, `POST /v1/payment_links`, and `GET /v1/payment_links/{id}`. | **Met** |
+| **Root Cause Diagnosis** | Diagnose payment degradation, cart drop-off, subscriptions, invoices | Grok 3 Mini classifies across 8 distinct failure modes (`BANK_DECLINE`, `NETWORK_TIMEOUT`, `INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `FRAUD_FLAG`, `CHECKOUT_ABANDONED`, `SUBSCRIPTION_FAILED`, `OVERDUE_INVOICE`). | ✅ |
+| **Bounded Recovery Workflow** | Bounded, non-infinite intervention execution | Explicit policy bounds: max 3 retries, exponential delay backoffs (2h for banks, 24h for balance), 7-day invoice grace windows. | ✅ |
+| **Compliant Escalation** | Compliance boundaries, defense-only, anti-abuse | Strict **Zero-Auto-Retry policy** on `FRAUD_FLAG`. Flagged payments immediately escalate to human risk review with frozen recovery actions. | ✅ |
+| **Stopping Rules** | Graceful failure handling; prevent cascade loops | Hard circuit-breaker: **2 consecutive recovery failures halt the entire batch**. Remaining records are audited as `SKIPPED`. | ✅ |
+| **Measured Money Recovered** | Concrete, verifiable ₹ metrics across batches | Tracks actual ₹ recovered, recovery rates %, and link reconciliation without cherry-picking or masked numbers. | ✅ |
+| **Honest Exception List** | Surface what the agent could *not* resolve | Dedicated `/exceptions` module grouping unresolved amounts by root cause, displaying customer details and Grok reasoning. | ✅ |
+| **Audit Trail** | Explainable, bounded, gated audit trail | Immutable `AuditLog` table logging timestamp, actor (`AI_AGENT`, `RAZORPAY_WEBHOOK`), action, result, and detail for every payment. | ✅ |
+| **Live API Integration** | Real Razorpay test-mode API interaction | End-to-end integration with Razorpay Python SDK: `GET /v1/payments`, `POST /v1/payment_links`, and `GET /v1/payment_links/{id}`. | ✅ |
 
 ---
 
@@ -327,3 +330,153 @@ To test PayBack AI against real Razorpay test-mode transactions:
    - Once you pay the newly generated recovery link in Razorpay test mode, click **Sync Paid Links** on the Payments page.
    - The status updates from `PENDING` → `RECOVERED`, showing verified money recovered!
 
+---
+
+## 11.0 Dashboard & UI Features
+
+PayBack AI includes a **professional, enterprise-grade dashboard** built with React 18 and Recharts:
+
+### 📊 Overview Dashboard
+- **Real-time KPI cards** — Total monitored, recovered, money recovered, recovery rate
+- **Trend charts** — Area charts showing recovery rates and batch performance over time
+- **Pie chart** — Status distribution breakdown (Recovered / Failed / Escalated / Pending)
+- **Batch run history** — Searchable, filterable table of all agent runs with stop-flag indicators
+- **1-click batch execution** — Run the AI agent on configurable batch sizes (1–200)
+
+### 💳 Payment Transactions (Card View)
+- **Card-based layout** — Each payment displayed as an interactive card with hover effects
+- **AI reasoning always visible** — Gemini diagnosis and recovery message expanded by default
+- **Status badges** — Color-coded with icons (✅ Recovered, ❌ Failed, ⚠️ Escalated)
+- **Root cause tags** — Colored labels with emojis for each failure type
+- **Copy-to-clipboard** — Quick copy of payment IDs
+- **Customer avatars** — Auto-generated from email initials
+- **Sortable & paginated** — Sort by amount, status, retries; 9/12/24 per page
+- **Inline recovery** — 1-click recover button triggers full AI pipeline
+
+### 🛡️ Audit Trail (Timeline View)
+- **Timeline UI** — Vertical gradient timeline with colored result nodes
+- **Expandable entries** — Click to reveal full payment ID, timestamps, and details
+- **Filter by result** — All, Success, Failed, Escalated, Started, Done
+- **Search** — Across actions, payment IDs, details, and actor names
+- **Sort toggle** — Newest first / Oldest first
+- **Per-payment audit modal** — Full timeline + voice recovery playback + payment summary
+
+### ⚡ Live Detector
+- **Real-time Razorpay polling** — Fetches live test-mode payment failures
+- **Configurable lookback** — 1h, 6h, 12h, 24h, 48h time windows
+- **1-click recovery** — Instant autonomous recovery for any detected failure
+- **Auto-refresh** — Continuous monitoring with manual refresh
+
+### 📋 Exception List
+- **Honest unresolved report** — Groups unrecoverable payments by root cause
+- **AI reasoning display** — Shows why each payment couldn't be recovered
+- **Financial breakdown** — Total unresolved amounts per failure category
+
+---
+
+## 12.0 Tech Stack & Deployment
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| **FastAPI** | Async REST API framework with auto-generated OpenAPI docs |
+| **SQLAlchemy + SQLite** | ORM with lightweight persistent storage (Postgres-ready) |
+| **Groq LPU (xAI Grok 3 Mini)** | Ultra-fast AI inference for root cause classification and copy generation |
+| **Razorpay Python SDK** | Payment link creation, failure detection, webhook reconciliation |
+| **Pytest (30 tests)** | Comprehensive test suite covering classifier, orchestrator, recovery, and webhooks |
+| **Uvicorn** | ASGI server for production deployment |
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| **React 18** | Component-based UI with hooks |
+| **Vite** | Lightning-fast dev server and build tool |
+| **Recharts** | Area charts, pie charts for dashboard visualizations |
+| **Lucide React** | Professional icon library (200+ icons used) |
+| **Axios** | HTTP client for API communication |
+
+### Deployment
+| Service | Platform | URL |
+|---|---|---|
+| **Frontend** | Vercel (auto-deploy from GitHub) | [razorpay-ai-buildathon-ten.vercel.app](https://razorpay-ai-buildathon-ten.vercel.app/) |
+| **Backend** | Railway (auto-deploy from GitHub) | [razorpay-ai-buildathon-production.up.railway.app](https://razorpay-ai-buildathon-production.up.railway.app/) |
+| **Database** | SQLite (local) / PostgreSQL (Railway) | Auto-configured via `DATABASE_URL` |
+
+### Environment Variables
+
+#### Backend (`backend/.env`)
+```env
+RAZORPAY_KEY_ID=rzp_test_xxxxx          # Razorpay test mode key
+RAZORPAY_KEY_SECRET=xxxxx               # Razorpay test mode secret
+GROK_API_KEY=xai-xxxxx                  # xAI Grok API key
+DATABASE_URL=sqlite:///./payback.db     # Local SQLite (or Postgres URL for Railway)
+ALLOWED_ORIGINS=https://your-frontend.vercel.app  # CORS origins
+```
+
+#### Frontend (Vercel Environment Variable)
+```env
+VITE_API_URL=https://your-backend.up.railway.app  # Railway backend URL
+```
+
+---
+
+## 13.0 Project Structure
+
+```
+Razorpay-ai-buildathon/
+├── backend/
+│   ├── agent/
+│   │   ├── classifier.py          # Grok 3 Mini root cause classifier
+│   │   ├── detector.py            # Live Razorpay payment failure detector
+│   │   ├── orchestrator.py        # Batch orchestration with stopping rules
+│   │   ├── recovery.py            # Bounded recovery actions & Razorpay API integration
+│   │   └── audit.py               # Immutable audit trail logger
+│   ├── models/
+│   │   ├── database.py            # SQLAlchemy engine & session (SQLite/Postgres)
+│   │   └── schemas.py             # Payment, BatchRun, AuditLog ORM models
+│   ├── routes/
+│   │   ├── agent.py               # /agent/* endpoints (run-batch, runs)
+│   │   ├── payments.py            # /payments/* endpoints (list, recover, detect, sync)
+│   │   ├── audit.py               # /audit/* endpoints (trail, logs)
+│   │   └── webhooks.py            # /webhooks/* Razorpay webhook listener
+│   ├── tests/
+│   │   ├── test_classifier.py     # 10 classifier tests
+│   │   ├── test_orchestrator.py   # 7 orchestrator tests
+│   │   ├── test_recovery.py       # 11 recovery action tests
+│   │   └── test_webhooks.py       # 2 webhook tests
+│   ├── config.py                  # Environment config loader
+│   ├── main.py                    # FastAPI app entry point with CORS & lifecycle
+│   ├── requirements.txt           # Python dependencies
+│   ├── Procfile                   # Railway deployment command
+│   ├── railway.json               # Railway build config
+│   └── runtime.txt                # Python version for deployment
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── HomePage.jsx       # Landing page with feature showcase
+│   │   │   ├── Dashboard.jsx      # Overview with charts, KPIs, batch runs
+│   │   │   ├── PaymentsTable.jsx  # Card-based payment view with AI reasoning
+│   │   │   ├── Exceptions.jsx     # Honest exception list
+│   │   │   ├── Detector.jsx       # Live Razorpay failure detector
+│   │   │   ├── AuditLogs.jsx      # Timeline audit trail with filters
+│   │   │   ├── AuditModal.jsx     # Per-payment audit modal with voice playback
+│   │   │   └── Sidebar.jsx        # Navigation sidebar
+│   │   ├── api.js                 # Axios API client
+│   │   ├── App.jsx                # Root app with page routing
+│   │   └── main.jsx               # React entry point
+│   ├── vercel.json                # Vercel SPA rewrite config
+│   ├── vite.config.js             # Vite dev server with API proxy
+│   └── package.json               # Node dependencies
+├── README.md                      # This file
+└── .gitignore
+```
+
+---
+
+<div align="center">
+
+**Built with ❤️ for the Razorpay AI Buildathon 2026**
+
+⚡ PayBack AI — *Recover failed payments. Win back revenue autonomously.*
+
+</div>
