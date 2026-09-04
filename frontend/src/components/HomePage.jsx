@@ -345,23 +345,6 @@ export default function HomePage({ onGoToDashboard }) {
         textAlign: 'center',
       }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-            background: '#F0FDF4',
-            border: '1px solid #BBF7D0',
-            padding: '5px 14px',
-            borderRadius: 20,
-            fontSize: 12,
-            color: '#166534',
-            fontWeight: 700,
-            marginBottom: 20,
-          }}>
-            <Sparkles size={14} color="#16A34A" />
-            Track 03 Winner Architecture: Autonomous, Closed-Loop & 100% Policy-Bounded
-          </div>
-
           <h1 style={{
             fontSize: 'clamp(32px, 4.5vw, 56px)',
             fontWeight: 800,
