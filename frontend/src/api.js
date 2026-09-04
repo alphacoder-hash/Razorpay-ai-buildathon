@@ -1,6 +1,10 @@
 import axios from 'axios'
+// In production on Vercel, VITE_API_URL points to the Railway backend URL
+// In local dev, falls back to '/api' which Vite proxies to http://localhost:8000
+const rawBaseURL = import.meta.env.VITE_API_URL || '/api'
+const baseURL = rawBaseURL.endsWith('/') ? rawBaseURL.slice(0, -1) : rawBaseURL
 
-const api = axios.create({ baseURL: '/api' })
+const api = axios.create({ baseURL })
 
 export const runBatch        = (count = 60) => api.post(`/agent/run-batch?count=${count}`)
 export const getBatchRuns    = ()           => api.get('/agent/runs')
